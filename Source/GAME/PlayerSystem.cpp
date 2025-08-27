@@ -7,7 +7,6 @@ namespace GAME
 {
 	void UpdateMovement(entt::registry& registry, entt::entity entity)
 	{
-		// All player systems in here
 		auto& input = registry.ctx().get<UTIL::Input>();
 		auto& deltaTime = registry.ctx().get<UTIL::DeltaTime>();
 		std::shared_ptr<const GameConfig> config = registry.ctx().get<UTIL::Config>().gameConfig;
@@ -30,7 +29,7 @@ namespace GAME
 		GW::MATH::GMatrix::TranslateLocalF(_toManipulate, deltaPos, _toManipulate);
 	}
 
-	GW::MATH::GVECTORF GetPlayerProjectileVelocity(entt::registry& registry, GW::MATH::GVECTORF inputs, std::string projectileNameIni)
+	GW::MATH::GVECTORF CalculateProjectileVelocity(entt::registry& registry, GW::MATH::GVECTORF inputs, std::string projectileNameIni)
 	{
 		float speed = registry.ctx().get<UTIL::Config>().gameConfig.get()->at(projectileNameIni).at("speed").as<float>();
 
@@ -85,14 +84,14 @@ namespace GAME
 			if (inputKeys.x || inputKeys.y || inputKeys.z || inputKeys.w)
 			{
 				auto bulletEntity = registry.create();
-				auto& projectileVelocity = GetPlayerProjectileVelocity(registry, inputKeys, UTIL::Projectile1Name);
+				auto& projectileVelocity = CalculateProjectileVelocity(registry, inputKeys, UTIL::Projectile1Name);
 
 				registry.emplace<Bullet>(bulletEntity);
 				UTIL::CreateModelEntity(registry, bulletEntity, UTIL::Projectile1Name, &registry.get<GAME::Transform>(entity).transform);
 				registry.emplace<FiringState>(entity, config->at(UTIL::PlayerName).at("firerate").as<double>());
 				registry.emplace<Velocity>(bulletEntity, projectileVelocity);
 				registry.emplace<Collidable>(bulletEntity);
-				registry.get<DRAW::MeshCollection>(bulletEntity).collider = registry.ctx().get<DRAW::ModelManager>().collection[UTIL::Projectile1Name].collider;
+				registry.get<DRAW::MeshCollection>(bulletEntity).collider = registry.ctx().get<DRAW::ModelManager>().models[UTIL::Projectile1Name].collider;
 			}
 		}
 		else

@@ -30,6 +30,9 @@ namespace UTIL
 
 	/// Method declarations
 	void CreateModelEntity(entt::registry& registry, entt::entity entity, std::string entityName, GW::MATH::GMATRIXF* _transform = nullptr);
+	void SetupPlayer(entt::registry& registry, entt::entity entity);
+	void SetupEnemy(entt::registry& registry, entt::entity entity);
+	void SetupCamera(entt::registry& registry, entt::entity entity);
 
 	/// Creates a normalized vector pointing in a random direction on the X/Z plane
 	GW::MATH::GVECTORF GetRandomVelocityVector();

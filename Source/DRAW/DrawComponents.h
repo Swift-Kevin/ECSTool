@@ -58,7 +58,7 @@ namespace DRAW
 			return indexStart < a.indexStart;
 		}
 	};
-	
+
 	struct GPUInstance
 	{
 		GW::MATH::GMATRIXF	transform;
@@ -84,16 +84,15 @@ namespace DRAW
 		std::vector<VkDeviceMemory> memory;
 	};
 
-
 	struct Camera
 	{
 		GW::MATH::GMATRIXF camMatrix;
-	};	
+	};
 
 	struct CPULevel {
 		std::string jsonPath;
-		std::string modelAssetsFolderPath;
-		Level_Data gameLevelData;
+		std::string modelFilePath;
+		Level_Data gameLevel;
 	};
 
 	struct GPULevel {
@@ -101,12 +100,12 @@ namespace DRAW
 	};
 
 	struct MeshCollection {
-		std::vector<entt::entity> meshs;
+		std::vector<entt::entity> entites;
 		GW::MATH::GOBBF collider;
 	};
 
 	struct ModelManager {
-		std::map<std::string, MeshCollection> collection;
+		std::map<std::string, MeshCollection> models;
 	};
 
 } // namespace DRAW

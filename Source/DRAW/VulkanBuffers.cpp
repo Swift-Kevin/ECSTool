@@ -205,8 +205,7 @@ namespace DRAW
 		auto& renderer = registry.get<VulkanRenderer>(entity);
 		auto& data = registry.get<SceneData>(entity);
 
-		// TODO : Update Dynamic parts of the Scene Data here
-		// We really only support one camera, so use the first one
+		// Update Dynamic Scene Data here
 		auto& camera = registry.get<Camera>(registry.view<Camera>().front());
 
 		data.camPos = camera.camMatrix.row4;

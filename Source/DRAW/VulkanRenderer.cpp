@@ -433,12 +433,9 @@ namespace DRAW
 		// Update uniform and storage buffers
 		registry.patch<VulkanUniformBuffer>(entity);
 
-		// TODO: Build draw instructions
+		// Build draw instructions
 		// every mesh instance that contains the GeometryData and GPUInstance
 		auto instances = registry.group<GeometryData>(entt::get<GPUInstance>, entt::exclude<DoNotRender>);
-		
-		// - ComponentToOwn is also included when grouping the entities
-		// registry.group<ComponentToOwn>(entt::get<Component1, Component2>, entt::exclude<ComponentExclude>);
 		
 		// sort the instances
 		instances.sort<GeometryData>([](const GeometryData& a, const GeometryData& b) { return a < b; });
@@ -465,7 +462,6 @@ namespace DRAW
 				vkCmdBindIndexBuffer(commandBuffer, indexBuffer.buffer, 0, VkIndexType::VK_INDEX_TYPE_UINT32);
 			}
 
-			// TODO: Update buffers here before the bind of the descriptor sets
 			// Emplace the GPU Instance Container onto the renderers entity
 			registry.emplace<std::vector<GPUInstance>>(entity, gpuInstances);
 			// Update VKGPUIB
@@ -473,16 +469,14 @@ namespace DRAW
 
 			vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vulkanRenderer.pipelineLayout, 0, 1, &vulkanRenderer.descriptorSets[frame], 0, nullptr);
 
-			// TODO: Draw all the things that need drawing
+			// Draw all the things that need drawing
 			int instanceStart = 0;
 			for (const auto& geo : geoDatas)
 			{
-				vkCmdDrawIndexed(commandBuffer,
-					geo.first.indexCount,
-					geo.second,
-					geo.first.indexStart,
-					geo.first.vertexStart,
-					instanceStart
+				vkCmdDrawIndexed(commandBuffer, \
+					geo.first.indexCount, geo.second, \
+					geo.first.indexStart, geo.first.vertexStart, \
+					instanceStart \
 				);
 
 				// Add the instances we consumed

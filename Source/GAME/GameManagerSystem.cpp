@@ -14,7 +14,7 @@ namespace GAME
 		{
 			// can use view for accessing the transform
 			GW::MATH::GMATRIXF& currTransform = registry.get<Transform>(entity).transform;
-			auto& currentMeshs = registry.get<DRAW::MeshCollection>(entity).meshs;
+			auto& currentMeshs = registry.get<DRAW::MeshCollection>(entity).entites;
 
 			for (auto& mesh : currentMeshs)
 			{
@@ -219,7 +219,7 @@ namespace GAME
 						{
 							registry.emplace<GAME::Collidable>(toMakeEnemy);
 							std::string name = config->at(UTIL::Enemy1Name).at("model").as<std::string>();
-							auto& coll = registry.ctx().get<DRAW::ModelManager>().collection[name].collider;
+							auto& coll = registry.ctx().get<DRAW::ModelManager>().models[name].collider;
 							registry.get<DRAW::MeshCollection>(toMakeEnemy).collider = coll;
 						}
 

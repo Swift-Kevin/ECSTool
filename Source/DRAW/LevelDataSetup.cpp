@@ -8,7 +8,7 @@ namespace DRAW
 		GW::SYSTEM::GLog levelLog;
 		levelLog.Create("DebugLog");
 		levelLog.EnableConsoleLogging(true);
-		bool loadRes = pathRef.gameLevelData.LoadLevel(pathRef.jsonPath.c_str(), pathRef.modelAssetsFolderPath.c_str(), levelLog);
+		bool loadRes = pathRef.gameLevel.LoadLevel(pathRef.jsonPath.c_str(), pathRef.modelFilePath.c_str(), levelLog);
 		std::cout << "Loading Level Result Status: " << loadRes << '\n';
 	}
 
@@ -25,7 +25,7 @@ namespace DRAW
 			return;
 		}
 
-		Level_Data& levelData = cpuPathRef->gameLevelData;
+		Level_Data& levelData = cpuPathRef->gameLevel;
 
 		// emplace a buffer component on the entity that also has the gpu level
 		registry.emplace<VulkanVertexBuffer>(entity);
@@ -40,7 +40,7 @@ namespace DRAW
 		registry.patch<VulkanIndexBuffer>(entity);
 
 		// Get the model managers collection
-		auto& modelManagerCollection = registry.ctx().emplace<ModelManager>().collection;
+		auto& modelManagerCollection = registry.ctx().emplace<ModelManager>().models;
 
 		// Part 3 starts here
 		auto& _blenderObjects = levelData.blenderObjects;
@@ -92,14 +92,14 @@ namespace DRAW
 				if (currentModel.isDynamic)
 				{
 					registry.emplace<DoNotRender>(meshEntity);
-					meshCollect.meshs.push_back(meshEntity);
+					meshCollect.entites.push_back(meshEntity);
 				}
 			}
 
 			// out of meshs' for loop
 			if (currentModel.isDynamic)
 			{
-				modelManagerCollection[_blenderObjects[i].blendername].meshs = meshCollect.meshs;
+				modelManagerCollection[_blenderObjects[i].blendername].entites = meshCollect.entites;
 			}
 
 		}

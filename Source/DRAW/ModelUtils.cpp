@@ -5,7 +5,7 @@ namespace DRAW
 {
 	void DestroyMeshCollection(entt::registry& registry, entt::entity entity)
 	{
-		auto& meshCollections = registry.get<MeshCollection>(entity).meshs;
+		auto& meshCollections = registry.get<MeshCollection>(entity).entites;
 
 		for (entt::entity thing : meshCollections)
 		{

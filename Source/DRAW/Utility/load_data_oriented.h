@@ -163,9 +163,11 @@ private:
 				"ERROR", (std::string("Game level not found: ") + gameLevelPath).c_str());
 			return false;
 		}
+		
 
-		unsigned int fileSize = 0;
-		file.GetFileSize(gameLevelPath, fileSize); // need fileSize to make sure I don't blow the solution up while still getting all the info I need. TODO: Find a way to optimize this.
+		// unsigned int fileSize = 0;
+		// file.GetFileSize(gameLevelPath, fileSize); // need fileSize to make sure I don't blow the solution up while still getting all the info I need. TODO: Find a way to optimize this.
+		std::uintmax_t fileSize = std::filesystem::file_size(gameLevelPath);
 		char* jsonFile = new char[fileSize];
 		file.Read(jsonFile, fileSize); // Unsure if I have to close this.
 

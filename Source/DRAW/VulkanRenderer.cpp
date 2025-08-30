@@ -334,7 +334,7 @@ namespace DRAW
 		// Create Projection matrix
 		float aspectRatio;
 		vulkanRenderer.vlkSurface.GetAspectRatio(aspectRatio);
-		GW::MATH::GMatrix::ProjectionVulkanLHF(G2D_DEGREE_TO_RADIAN_F(initializationData.fovDegrees), aspectRatio, initializationData.nearPlane, initializationData.farPlane, vulkanRenderer.projMatrix);
+		GW::MATH::GMatrix::ProjectionVulkanLHF(G_DEGREE_TO_RADIAN_F(initializationData.fovDegrees), aspectRatio, initializationData.nearPlane, initializationData.farPlane, vulkanRenderer.projMatrix);
 
 
 		vulkanRenderer.vlkSurface.GetDevice((void**)&vulkanRenderer.device);
@@ -433,11 +433,8 @@ namespace DRAW
 		// Update uniform and storage buffers
 		registry.patch<VulkanUniformBuffer>(entity);
 
-		// Build draw instructions
-		// every mesh instance that contains the GeometryData and GPUInstance
+		// Get and Sort the instances
 		auto instances = registry.group<GeometryData>(entt::get<GPUInstance>, entt::exclude<DoNotRender>);
-		
-		// sort the instances
 		instances.sort<GeometryData>([](const GeometryData& a, const GeometryData& b) { return a < b; });
 
 		std::vector<GPUInstance> gpuInstances;
@@ -448,7 +445,7 @@ namespace DRAW
 			gpuInstances.push_back(gpu);
 			geoDatas[geo] += 1;
 		}
-		
+
 		// Check for presence of the buffers first as they take a few frames before they are created
 		if (registry.all_of< VulkanVertexBuffer, VulkanIndexBuffer>(entity))
 		{
@@ -469,20 +466,12 @@ namespace DRAW
 
 			vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vulkanRenderer.pipelineLayout, 0, 1, &vulkanRenderer.descriptorSets[frame], 0, nullptr);
 
-			// Draw all the things that need drawing
 			int instanceStart = 0;
 			for (const auto& geo : geoDatas)
 			{
-				vkCmdDrawIndexed(commandBuffer, \
-					geo.first.indexCount, geo.second, \
-					geo.first.indexStart, geo.first.vertexStart, \
-					instanceStart \
-				);
-
-				// Add the instances we consumed
+				vkCmdDrawIndexed(commandBuffer, geo.first.indexCount, geo.second, geo.first.indexStart, geo.first.vertexStart, instanceStart);
 				instanceStart += geo.second;
 			}
-
 		}
 
 		vulkanRenderer.vlkSurface.EndFrame(true);

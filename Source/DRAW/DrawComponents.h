@@ -8,18 +8,18 @@ namespace DRAW
 {
 	//*** TAGS ***//
 	struct DoNotRender {};
-
+	struct GPULevel {};
 
 	//*** COMPONENTS ***//
 	struct VulkanRendererInitialization
 	{
-		std::string vertexShaderName;
-		std::string fragmentShaderName;
+		std::string vertexShaderName = "";
+		std::string fragmentShaderName = "";
 		VkClearColorValue clearColor;
 		VkClearDepthStencilValue depthStencil;
-		float fovDegrees;
-		float nearPlane;
-		float farPlane;
+		float fovDegrees = 0.0f;
+		float nearPlane = 0.0f;
+		float farPlane = 0.0f;
 	};
 
 	struct VulkanRenderer
@@ -95,9 +95,6 @@ namespace DRAW
 		Level_Data gameLevel;
 	};
 
-	struct GPULevel {
-
-	};
 
 	struct MeshCollection {
 		std::vector<entt::entity> entites;

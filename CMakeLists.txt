@@ -91,7 +91,7 @@ endif(WIN32)
 target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_17)
 
 # Define DEBUG only for Debug build type
-target_compile_definitions(${PROJECT_NAME} PRIVATE $<$<CONFIG:Debug>:DEBUG> 
+target_compile_definitions(${PROJECT_NAME} PRIVATE $<$<CONFIG:Debug>:DEBUG>)
 
 # Reduce Compile times with PCH
 target_precompile_headers(${PROJECT_NAME} PRIVATE ${PRE_COMPILED})

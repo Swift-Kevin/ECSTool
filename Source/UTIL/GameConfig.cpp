@@ -9,8 +9,8 @@ GameConfig::GameConfig() : ini::IniFile()
 	// a more reasonable solution would be to write out some default values here
 
 	// this is really slick but it does require C++17
-	const char* defaults = "../defaults.ini";
-	const char* saved ="../saved.ini";
+	const char* defaults = "../SaveFiles/defaults.ini";
+	const char* saved ="../SaveFiles/saved.ini";
 	// if they both exist choose the newest one
 	if (std::filesystem::exists(defaults) && 
 		std::filesystem::exists(saved)) {

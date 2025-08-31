@@ -36,40 +36,7 @@ namespace UTIL
 
 	void SetupPlayer(entt::registry& registry, entt::entity entity)
 	{
-		std::shared_ptr<const GameConfig> config = registry.ctx().get<UTIL::Config>().gameConfig;
 
-		registry.emplace<GAME::Collidable>(entity);
-		registry.emplace<GAME::Health>(entity, config->at(UTIL::PlayerName).at("hitpoints").as<int>());
-		auto& coll = registry.ctx().get<DRAW::ModelManager>().models[config->at(UTIL::PlayerName).at("model").as<std::string>()].collider;
-		registry.get<DRAW::MeshCollection>(entity).collider = coll;
-	}
-
-	void SetupEnemy(entt::registry& registry, entt::entity entity)
-	{
-		std::shared_ptr<const GameConfig> config = registry.ctx().get<UTIL::Config>().gameConfig;
-		
-		// Speed
-		auto& velocity = UTIL::GetRandomVelocityVector();
-		float enemySpeed = config->at(UTIL::Enemy1Name).at("speed").as<float>();
-		GW::MATH::GVector::ScaleF(velocity, enemySpeed, velocity);
-		registry.emplace<GAME::Velocity>(entity, velocity);
-
-		// Collider
-		registry.emplace<GAME::Collidable>(entity);
-		std::string name = config->at(UTIL::Enemy1Name).at("model").as<std::string>();
-		auto& coll = registry.ctx().get<DRAW::ModelManager>().models[name].collider;
-		registry.get<DRAW::MeshCollection>(entity).collider = coll;
-
-		// Stats
-		registry.emplace<GAME::Health>(entity, config->at(UTIL::Enemy1Name).at("hitpoints").as<int>());
-
-		// Shatter
-		GAME::Shatters enemyShatter;
-		enemyShatter.initialShatterCount = config->at(UTIL::Enemy1Name).at("initialShatterCount").as<int>();
-		enemyShatter.shatterAmount = config->at(UTIL::Enemy1Name).at("shatterAmount").as<int>();
-		enemyShatter.shatterScale = config->at(UTIL::Enemy1Name).at("shatterScale").as<float>();
-
-		registry.emplace<GAME::Shatters>(entity, enemyShatter);
 	}
 
 	void SetupCamera(entt::registry& registry, entt::entity entity)

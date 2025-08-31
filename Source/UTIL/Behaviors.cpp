@@ -45,7 +45,7 @@ namespace BEHAVIORS
 				vertShader, pixelShader, // shader names
 				{ {0, 0, 0, 1} } , // clear color
 				{ 1.0f, 0u }, // depth stencil
-				75.f, // FOV
+				90.f, // FOV
 				0.1f, // near
 				100.0f // far
 			});
@@ -83,16 +83,17 @@ namespace BEHAVIORS
 		{
 			auto playerEntity = registry.create();
 			registry.emplace<GAME::Player>(playerEntity);
-			UTIL::CreateModelEntity(registry, playerEntity, UTIL::PlayerName);
 			UTIL::SetupPlayer(registry, playerEntity);
 		}
 
-		// Enemy1 (visible in game)
+		// Try spawning in the sun?
 		{
-			auto enemyEntity = registry.create();
-			registry.emplace<GAME::Enemy>(enemyEntity);
-			UTIL::CreateModelEntity(registry, enemyEntity, UTIL::Enemy1Name);
-			UTIL::SetupEnemy(registry, enemyEntity);
+			auto sunEntity = registry.create();
+			UTIL::CreateModelEntity(registry, sunEntity, "Sun");
+			auto mercuryEntity = registry.create();
+			UTIL::CreateModelEntity(registry, mercuryEntity, "Mercury");
+			auto venusEntity = registry.create();
+			UTIL::CreateModelEntity(registry, venusEntity, "Venus");
 		}
 
 		// Create Gameplay Entity to manage all gameplay systems

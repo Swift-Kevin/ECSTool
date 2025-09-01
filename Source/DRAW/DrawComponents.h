@@ -1,14 +1,13 @@
 #ifndef DRAW_COMPONENTS_H
 #define DRAW_COMPONENTS_H
 
-#include "./Utility/load_data_oriented.h"
 #include "../GAME/GameComponents.h"
+#include "../../ExternalAPI/TinyGLTF/tiny_gltf.h"
 
 namespace DRAW
 {
 	//*** TAGS ***//
 	struct DoNotRender {};
-	struct GPULevel {};
 
 	//*** COMPONENTS ***//
 	struct VulkanRendererInitialization
@@ -20,6 +19,14 @@ namespace DRAW
 		float fovDegrees = 0.0f;
 		float nearPlane = 0.0f;
 		float farPlane = 0.0f;
+	};
+
+	struct TextureData
+	{
+		VkBuffer textureBuffer;
+		VkDeviceMemory textureMemory;
+		VkImage textureImage;
+		VkImageView textureImageView;
 	};
 
 	struct VulkanRenderer
@@ -37,15 +44,13 @@ namespace DRAW
 		VkDescriptorPool descriptorPool = nullptr;
 		std::vector<VkDescriptorSet> descriptorSets;
 		VkClearValue clrAndDepth[2];
+		VkDescriptorSetLayout textureDescriptorSetLayout = nullptr;
+		VkDescriptorSet textureDescriptorSet;
+		VkSampler textureSampler;
+		std::vector<TextureData> textureData;
 	};
 
-	struct VulkanVertexBuffer
-	{
-		VkBuffer buffer = VK_NULL_HANDLE;
-		VkDeviceMemory memory = VK_NULL_HANDLE;
-	};
-
-	struct VulkanIndexBuffer
+	struct VulkanGeometryBuffer
 	{
 		VkBuffer buffer = VK_NULL_HANDLE;
 		VkDeviceMemory memory = VK_NULL_HANDLE;
@@ -53,16 +58,24 @@ namespace DRAW
 
 	struct GeometryData
 	{
-		unsigned int indexStart, indexCount, vertexStart;
+		uint64_t positionOffset;
+		uint64_t uvwOffset;
+		uint64_t normalOffset;
+		uint64_t tangentOffset;
+		uint64_t indicesOffset;
+
+		uint64_t indexCount;
+		
 		inline bool operator < (const GeometryData a) const {
-			return indexStart < a.indexStart;
+			return indicesOffset < a.indicesOffset;
 		}
 	};
 
 	struct GPUInstance
 	{
 		GW::MATH::GMATRIXF	transform;
-		H2B::ATTRIBUTES		matData;
+		uint32_t textureIndex;
+		char padding[60];
 	};
 
 	struct VulkanGPUInstanceBuffer
@@ -89,20 +102,9 @@ namespace DRAW
 		GW::MATH::GMATRIXF camMatrix;
 	};
 
-	struct CPULevel {
-		std::string jsonPath;
-		std::string modelFilePath;
-		Level_Data gameLevel;
-	};
-
-
-	struct MeshCollection {
-		std::vector<entt::entity> entites;
-		GW::MATH::GOBBF collider;
-	};
-
-	struct ModelManager {
-		std::map<std::string, MeshCollection> models;
+	struct GLTFLevel {
+		std::string levelPath;
+		tinygltf::Model model;
 	};
 
 } // namespace DRAW

@@ -21,26 +21,8 @@ namespace GAME
 
 	};
 
-	struct FiringState {
-		double cooldown = 0;
-	};
-
 	struct Velocity {
 		GW::MATH::GVECTORF velocity;
-	};
-
-	struct Health {
-		int hitpoints = 0;
-	};
-
-	struct Shatters {
-		int initialShatterCount = 0;
-		int shatterAmount = 0;
-		float shatterScale = 0.0f;
-	};
-
-	struct Invulnerable {
-		double cooldown = 0;
 	};
 
 }// namespace GAME

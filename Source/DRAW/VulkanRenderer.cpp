@@ -3,6 +3,8 @@
 // component dependencies
 #include "./Utility/FileIntoString.h"
 
+#include "./Utility/VulkanHelpers.h"
+
 #include "shaderc/shaderc.h" // needed for compiling shaders at runtime
 #ifdef _WIN32 // must use MT platform DLL libraries on windows
 #pragma comment(lib, "shaderc_combined.lib") 
@@ -34,6 +36,45 @@ namespace DRAW
 		return retval;
 	}
 
+	void InitializeDescriptorLayouts(DRAW::VulkanRenderer& _renderer)
+	{
+		VkDescriptorSetLayoutBinding layoutBinding[2] =
+		{
+			VKH::CreateVkDescriptorSetLayoutBinding(0, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1),
+			VKH::CreateVkDescriptorSetLayoutBinding(1, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1)
+		};
+
+		VkDescriptorSetLayoutCreateInfo setCreateInfo = VKH::CreateVkDescriptorSetLayoutCreateInfo(layoutBinding, ARRAYSIZE(layoutBinding));
+		vkCreateDescriptorSetLayout(_renderer.device, &setCreateInfo, nullptr, &_renderer.descriptorLayout);
+	}
+
+	void InitializeDescriptorPool(DRAW::VulkanRenderer& _renderer, unsigned _frameCount)
+	{
+		VkDescriptorPoolCreateInfo poolCreateInfo = {};
+		poolCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+		VkDescriptorPoolSize descriptorpool_size[2] = 
+		{
+			{ VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, _frameCount },
+			{ VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, _frameCount }
+		};
+		poolCreateInfo.poolSizeCount = 2;
+		poolCreateInfo.pPoolSizes = descriptorpool_size;
+		poolCreateInfo.maxSets = _frameCount;
+		poolCreateInfo.flags = 0;
+		poolCreateInfo.pNext = nullptr;
+		vkCreateDescriptorPool(_renderer.device, &poolCreateInfo, nullptr, &_renderer.descriptorPool);
+	}
+
+	void AllocateDescriptorSets(DRAW::VulkanRenderer& _renderer, unsigned _frameCount)
+	{
+		VkDescriptorSetAllocateInfo allocateInfo = VKH::CreateVkDescriptorSetAllocateInfo(1, &_renderer.descriptorLayout, _renderer.descriptorPool);
+
+		for (int i = 0; i < _frameCount; i++)
+		{
+			vkAllocateDescriptorSets(_renderer.device, &allocateInfo, &_renderer.descriptorSets[i]);
+		}
+	}
+
 	void InitializeDescriptors(entt::registry& registry, entt::entity entity)
 	{
 		auto& vulkanRenderer = registry.get<VulkanRenderer>(entity);
@@ -42,56 +83,9 @@ namespace DRAW
 		vulkanRenderer.vlkSurface.GetSwapchainImageCount(frameCount);
 		vulkanRenderer.descriptorSets.resize(frameCount);
 
-#pragma region Descriptor Layout
-		VkDescriptorSetLayoutBinding layoutBinding[2] = {};
-		layoutBinding[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-		layoutBinding[0].descriptorCount = 1;
-		layoutBinding[0].stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
-		layoutBinding[0].binding = 0;
-		layoutBinding[0].pImmutableSamplers = nullptr;
-
-		layoutBinding[1].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-		layoutBinding[1].descriptorCount = 1;
-		layoutBinding[1].stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
-		layoutBinding[1].binding = 1;
-		layoutBinding[1].pImmutableSamplers = nullptr;
-
-		VkDescriptorSetLayoutCreateInfo setCreateInfo = {};
-		setCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-		setCreateInfo.bindingCount = 2;
-		setCreateInfo.pBindings = layoutBinding;
-		setCreateInfo.flags = 0;
-		setCreateInfo.pNext = nullptr;
-		vkCreateDescriptorSetLayout(vulkanRenderer.device, &setCreateInfo, nullptr, &vulkanRenderer.descriptorLayout);
-#pragma endregion
-
-#pragma region Descriptor Pool
-		VkDescriptorPoolCreateInfo descriptorpool_create_info = {};
-		descriptorpool_create_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-		VkDescriptorPoolSize descriptorpool_size[2] = {
-			{ VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, frameCount },
-			{ VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, frameCount }
-		};
-		descriptorpool_create_info.poolSizeCount = 2;
-		descriptorpool_create_info.pPoolSizes = descriptorpool_size;
-		descriptorpool_create_info.maxSets = frameCount;
-		descriptorpool_create_info.flags = 0;
-		descriptorpool_create_info.pNext = nullptr;
-		vkCreateDescriptorPool(vulkanRenderer.device, &descriptorpool_create_info, nullptr, &vulkanRenderer.descriptorPool);
-#pragma endregion
-
-#pragma region Allocate Descriptor Sets
-		VkDescriptorSetAllocateInfo allocateInfo = {};
-		allocateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-		allocateInfo.descriptorSetCount = 1;
-		allocateInfo.descriptorPool = vulkanRenderer.descriptorPool;
-		allocateInfo.pSetLayouts = &vulkanRenderer.descriptorLayout;
-		allocateInfo.pNext = nullptr;
-		for (int i = 0; i < frameCount; i++)
-		{
-			vkAllocateDescriptorSets(vulkanRenderer.device, &allocateInfo, &vulkanRenderer.descriptorSets[i]);
-		}
-#pragma endregion
+		InitializeDescriptorLayouts(vulkanRenderer);
+		InitializeDescriptorPool(vulkanRenderer, frameCount);
+		AllocateDescriptorSets(vulkanRenderer, frameCount);
 
 		// Add the 2 buffers, this will create the initial buffers so we can finish building our descriptor set
 		auto& storageBuffer = registry.emplace<VulkanGPUInstanceBuffer>(entity,
@@ -101,29 +95,20 @@ namespace DRAW
 
 		for (int i = 0; i < frameCount; i++)
 		{
+			VkDescriptorBufferInfo buffer_info[] =
+			{
+				VKH::CreateVkDescriptorBufferInfo(uniformBuffer.buffer[i]),
+				VKH::CreateVkDescriptorBufferInfo(storageBuffer.buffer[i])
+			};
 
-			VkDescriptorBufferInfo uniformBufferInfo = { uniformBuffer.buffer[i], 0, VK_WHOLE_SIZE };
-			VkWriteDescriptorSet uniformWrite = {};
-			uniformWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-			uniformWrite.dstSet = vulkanRenderer.descriptorSets[i];
-			uniformWrite.dstBinding = 0; // 0 For the uniform buffer
-			uniformWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-			uniformWrite.descriptorCount = 1;
-			uniformWrite.pBufferInfo = &uniformBufferInfo;
+			VkWriteDescriptorSet writes[] =
+			{
+				VKH::CreateVkWriteDescriptorSet(vulkanRenderer.descriptorSets[i], 0, 0, 1, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, &buffer_info[0], VK_NULL_HANDLE, VK_NULL_HANDLE),
+				VKH::CreateVkWriteDescriptorSet(vulkanRenderer.descriptorSets[i], 1, 0, 1, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, &buffer_info[1], VK_NULL_HANDLE, VK_NULL_HANDLE)
+			};
 
-			VkDescriptorBufferInfo storageBufferInfo = { storageBuffer.buffer[i], 0, VK_WHOLE_SIZE };
-			VkWriteDescriptorSet storageWrite = {};
-			storageWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-			storageWrite.dstSet = vulkanRenderer.descriptorSets[i];
-			storageWrite.dstBinding = 1; // 1 For the storage buffer
-			storageWrite.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-			storageWrite.descriptorCount = 1;
-			storageWrite.pBufferInfo = &storageBufferInfo;
-
-			VkWriteDescriptorSet descriptorWrites[] = { uniformWrite, storageWrite };
-			vkUpdateDescriptorSets(vulkanRenderer.device, 2, descriptorWrites, 0, nullptr);
+			vkUpdateDescriptorSets(vulkanRenderer.device, ARRAYSIZE(writes), writes, 0, nullptr);
 		}
-
 	}
 
 	void InitializeGraphicsPipeline(entt::registry& registry, entt::entity entity)
@@ -132,118 +117,53 @@ namespace DRAW
 		GW::SYSTEM::GWindow win = registry.get<GW::SYSTEM::GWindow>(entity);
 
 		// Create Pipeline & Layout (Thanks Tiny!)
-		VkPipelineShaderStageCreateInfo stage_create_info[2] = {};
+		VkPipelineShaderStageCreateInfo stageCreateInfo[2] = {};
 		// Create Stage Info for Vertex Shader
-		stage_create_info[0].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-		stage_create_info[0].stage = VK_SHADER_STAGE_VERTEX_BIT;
-		stage_create_info[0].module = vulkanRenderer.vertexShader;
-		stage_create_info[0].pName = "main";
+		stageCreateInfo[0].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+		stageCreateInfo[0].stage = VK_SHADER_STAGE_VERTEX_BIT;
+		stageCreateInfo[0].module = vulkanRenderer.vertexShader;
+		stageCreateInfo[0].pName = "main";
 
 		// Create Stage Info for Fragment Shader
-		stage_create_info[1].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-		stage_create_info[1].stage = VK_SHADER_STAGE_FRAGMENT_BIT;
-		stage_create_info[1].module = vulkanRenderer.fragmentShader;
-		stage_create_info[1].pName = "main";
+		stageCreateInfo[1].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+		stageCreateInfo[1].stage = VK_SHADER_STAGE_FRAGMENT_BIT;
+		stageCreateInfo[1].module = vulkanRenderer.fragmentShader;
+		stageCreateInfo[1].pName = "main";
 
-		VkPipelineInputAssemblyStateCreateInfo assembly_create_info = {};
-		assembly_create_info.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
-		assembly_create_info.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
-		assembly_create_info.primitiveRestartEnable = false;
+		VkPipelineInputAssemblyStateCreateInfo asmCreateInfo = {};
+		asmCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
+		asmCreateInfo.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+		asmCreateInfo.primitiveRestartEnable = false;
 
-		VkVertexInputBindingDescription vertex_binding_description = {};
-		vertex_binding_description.binding = 0;
-		vertex_binding_description.stride = sizeof(H2B::VERTEX);
-		vertex_binding_description.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+		VkVertexInputBindingDescription vtxBindDesc[4] =
+		{
+			VKH::CreateVkVertexInputBindingDescription(0, (sizeof(float) * 3), VK_VERTEX_INPUT_RATE_VERTEX),
+			VKH::CreateVkVertexInputBindingDescription(1, (sizeof(float) * 3), VK_VERTEX_INPUT_RATE_VERTEX),
+			VKH::CreateVkVertexInputBindingDescription(2, (sizeof(float) * 2), VK_VERTEX_INPUT_RATE_VERTEX),
+			VKH::CreateVkVertexInputBindingDescription(3, (sizeof(float) * 4), VK_VERTEX_INPUT_RATE_VERTEX)
+		};
 
-		VkVertexInputAttributeDescription vertex_attribute_description[3];
-		vertex_attribute_description[0].binding = 0;
-		vertex_attribute_description[0].location = 0;
-		vertex_attribute_description[0].format = VK_FORMAT_R32G32B32_SFLOAT;
-		vertex_attribute_description[0].offset = offsetof(H2B::VERTEX, pos);
+		VkVertexInputAttributeDescription vtxAttrDesc[4] =
+		{
+			VKH::CreateVkVertexInputAttributeDescription(0, 0, VK_FORMAT_R32G32B32_SFLOAT, 0),
+			VKH::CreateVkVertexInputAttributeDescription(1, 1, VK_FORMAT_R32G32B32_SFLOAT, 0),
+			VKH::CreateVkVertexInputAttributeDescription(2, 2, VK_FORMAT_R32G32_SFLOAT, 0),
+			VKH::CreateVkVertexInputAttributeDescription(3, 3, VK_FORMAT_R32G32B32A32_SFLOAT, 0)
+		};
 
-		vertex_attribute_description[1].binding = 0;
-		vertex_attribute_description[1].location = 1;
-		vertex_attribute_description[1].format = VK_FORMAT_R32G32B32_SFLOAT;
-		vertex_attribute_description[1].offset = offsetof(H2B::VERTEX, uvw);
-
-		vertex_attribute_description[2].binding = 0;
-		vertex_attribute_description[2].location = 2;
-		vertex_attribute_description[2].format = VK_FORMAT_R32G32B32_SFLOAT;
-		vertex_attribute_description[2].offset = offsetof(H2B::VERTEX, nrm);
-
-		VkPipelineVertexInputStateCreateInfo input_vertex_info = {};
-		input_vertex_info.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-		input_vertex_info.vertexBindingDescriptionCount = 1;
-		input_vertex_info.pVertexBindingDescriptions = &vertex_binding_description;
-		input_vertex_info.vertexAttributeDescriptionCount = 3;
-		input_vertex_info.pVertexAttributeDescriptions = vertex_attribute_description;
+		VkPipelineVertexInputStateCreateInfo input_vertex_info = VKH::CreateVkPipelineVertexInputStateCreateInfo(vtxBindDesc, 4, vtxAttrDesc, 4);
 
 		unsigned int windowWidth, windowHeight;
 		win.GetClientWidth(windowWidth);
 		win.GetClientHeight(windowHeight);
 		VkViewport viewport = CreateViewportFromWindowDimensions(windowWidth, windowHeight);
-
 		VkRect2D scissor = CreateScissorFromWindowDimensions(windowWidth, windowHeight);
-
-		VkPipelineViewportStateCreateInfo viewport_create_info = {};
-		viewport_create_info.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
-		viewport_create_info.viewportCount = 1;
-		viewport_create_info.pViewports = &viewport;
-		viewport_create_info.scissorCount = 1;
-		viewport_create_info.pScissors = &scissor;
-
-		VkPipelineRasterizationStateCreateInfo rasterization_create_info = {};
-		rasterization_create_info.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
-		rasterization_create_info.rasterizerDiscardEnable = VK_FALSE;
-		rasterization_create_info.polygonMode = VK_POLYGON_MODE_FILL;
-		rasterization_create_info.lineWidth = 1.0f;
-		rasterization_create_info.cullMode = VK_CULL_MODE_BACK_BIT;
-		rasterization_create_info.frontFace = VK_FRONT_FACE_CLOCKWISE;
-		rasterization_create_info.depthClampEnable = VK_FALSE;
-		rasterization_create_info.depthBiasEnable = VK_FALSE;
-		rasterization_create_info.depthBiasClamp = 0.0f;
-		rasterization_create_info.depthBiasConstantFactor = 0.0f;
-		rasterization_create_info.depthBiasSlopeFactor = 0.0f;
-
-		VkPipelineMultisampleStateCreateInfo multisample_create_info = {};
-		multisample_create_info.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
-		multisample_create_info.sampleShadingEnable = VK_FALSE;
-		multisample_create_info.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
-		multisample_create_info.minSampleShading = 1.0f;
-		multisample_create_info.pSampleMask = VK_NULL_HANDLE;
-		multisample_create_info.alphaToCoverageEnable = VK_FALSE;
-		multisample_create_info.alphaToOneEnable = VK_FALSE;
-
-		VkPipelineDepthStencilStateCreateInfo depth_stencil_create_info = {};
-		depth_stencil_create_info.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
-		depth_stencil_create_info.depthTestEnable = VK_TRUE;
-		depth_stencil_create_info.depthWriteEnable = VK_TRUE;
-		depth_stencil_create_info.depthCompareOp = VK_COMPARE_OP_LESS;
-		depth_stencil_create_info.depthBoundsTestEnable = VK_FALSE;
-		depth_stencil_create_info.minDepthBounds = 0.0f;
-		depth_stencil_create_info.maxDepthBounds = 1.0f;
-		depth_stencil_create_info.stencilTestEnable = VK_FALSE;
-
-		VkPipelineColorBlendAttachmentState color_blend_attachment_state = {};
-		color_blend_attachment_state.colorWriteMask = 0xF;
-		color_blend_attachment_state.blendEnable = VK_FALSE;
-		color_blend_attachment_state.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_COLOR;
-		color_blend_attachment_state.dstColorBlendFactor = VK_BLEND_FACTOR_DST_COLOR;
-		color_blend_attachment_state.colorBlendOp = VK_BLEND_OP_ADD;
-		color_blend_attachment_state.srcAlphaBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
-		color_blend_attachment_state.dstAlphaBlendFactor = VK_BLEND_FACTOR_DST_ALPHA;
-		color_blend_attachment_state.alphaBlendOp = VK_BLEND_OP_ADD;
-
-		VkPipelineColorBlendStateCreateInfo color_blend_create_info = {};
-		color_blend_create_info.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
-		color_blend_create_info.logicOpEnable = VK_FALSE;
-		color_blend_create_info.logicOp = VK_LOGIC_OP_COPY;
-		color_blend_create_info.attachmentCount = 1;
-		color_blend_create_info.pAttachments = &color_blend_attachment_state;
-		color_blend_create_info.blendConstants[0] = 0.0f;
-		color_blend_create_info.blendConstants[1] = 0.0f;
-		color_blend_create_info.blendConstants[2] = 0.0f;
-		color_blend_create_info.blendConstants[3] = 0.0f;
+		VkPipelineViewportStateCreateInfo viewport_create_info = VKH::CreateVkPipelineViewportStateCreateInfo(&viewport, 1, &scissor, 1);
+		VkPipelineRasterizationStateCreateInfo rasterization_create_info = VKH::CreateVkPipelineRasterizationStateCreateInfo();
+		VkPipelineMultisampleStateCreateInfo multisample_create_info = VKH::CreateVkPipelineMultisampleStateCreateInfo();
+		VkPipelineDepthStencilStateCreateInfo depth_stencil_create_info = VKH::CreateVkPipelineDepthStencilStateCreateInfo();
+		VkPipelineColorBlendAttachmentState color_blend_attachment_state = VKH::CreateVkPipelineColorBlendAttachmentState();
+		VkPipelineColorBlendStateCreateInfo color_blend_create_info = VKH::CreateVkPipelineColorBlendStateCreateInfo(&color_blend_attachment_state, 1);
 
 		// Dynamic State 
 		VkDynamicState dynamic_states[2] =
@@ -252,28 +172,19 @@ namespace DRAW
 			VK_DYNAMIC_STATE_VIEWPORT,
 			VK_DYNAMIC_STATE_SCISSOR
 		};
-		VkPipelineDynamicStateCreateInfo dynamic_create_info = {};
-		dynamic_create_info.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
-		dynamic_create_info.dynamicStateCount = 2;
-		dynamic_create_info.pDynamicStates = dynamic_states;
+		VkPipelineDynamicStateCreateInfo dynamic_create_info = VKH::CreateVkPipelineDynamicStateCreateInfo(dynamic_states, 2);
 
 		InitializeDescriptors(registry, entity);
 
-		VkPipelineLayoutCreateInfo pipeline_layout_create_info = {};
-		pipeline_layout_create_info.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-		pipeline_layout_create_info.setLayoutCount = 1;
-		pipeline_layout_create_info.pSetLayouts = &vulkanRenderer.descriptorLayout;
-		pipeline_layout_create_info.pushConstantRangeCount = 0;
-		pipeline_layout_create_info.pPushConstantRanges = nullptr;
-
-		vkCreatePipelineLayout(vulkanRenderer.device, &pipeline_layout_create_info, nullptr, &vulkanRenderer.pipelineLayout);
+		VkPipelineLayoutCreateInfo pipelineCI = VKH::CreateVkPipelineLayoutCreateInfo(1, &vulkanRenderer.descriptorLayout);
+		vkCreatePipelineLayout(vulkanRenderer.device, &pipelineCI, nullptr, &vulkanRenderer.pipelineLayout);
 
 		// Pipeline State... (FINALLY) 
 		VkGraphicsPipelineCreateInfo pipeline_create_info = {};
 		pipeline_create_info.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
 		pipeline_create_info.stageCount = 2;
-		pipeline_create_info.pStages = stage_create_info;
-		pipeline_create_info.pInputAssemblyState = &assembly_create_info;
+		pipeline_create_info.pStages = stageCreateInfo;
+		pipeline_create_info.pInputAssemblyState = &asmCreateInfo;
 		pipeline_create_info.pVertexInputState = &input_vertex_info;
 		pipeline_create_info.pViewportState = &viewport_create_info;
 		pipeline_create_info.pRasterizationState = &rasterization_create_info;
@@ -316,7 +227,7 @@ namespace DRAW
 		const char* debugLayers[] = {
 			"VK_LAYER_KHRONOS_validation", // standard validation layer
 		};
-		if (-vulkanRenderer.vlkSurface.Create(win, GW::GRAPHICS::DEPTH_BUFFER_SUPPORT,
+		if (-vulkanRenderer.vlkSurface.Create(win, GW::GRAPHICS::DEPTH_BUFFER_SUPPORT | GW::GRAPHICS::BINDLESS_SUPPORT,
 			sizeof(debugLayers) / sizeof(debugLayers[0]),
 			debugLayers, 0, nullptr, 0, nullptr, false))
 #else
@@ -447,31 +358,36 @@ namespace DRAW
 		}
 
 		// Check for presence of the buffers first as they take a few frames before they are created
-		if (registry.all_of< VulkanVertexBuffer, VulkanIndexBuffer>(entity))
+		if (registry.all_of< VulkanGeometryBuffer>(entity))
 		{
-			auto& vertexBuffer = registry.get<VulkanVertexBuffer>(entity);
-			auto& indexBuffer = registry.get<VulkanIndexBuffer>(entity);
-
-			if (vertexBuffer.buffer != VK_NULL_HANDLE && indexBuffer.buffer != VK_NULL_HANDLE)
-			{
-				VkDeviceSize offsets[] = { 0 };
-				vkCmdBindVertexBuffers(commandBuffer, 0, 1, &vertexBuffer.buffer, offsets);
-				vkCmdBindIndexBuffer(commandBuffer, indexBuffer.buffer, 0, VkIndexType::VK_INDEX_TYPE_UINT32);
-			}
-
-			// Emplace the GPU Instance Container onto the renderers entity
+			// TODO: Update buffers here before the bind of the descriptor sets
 			registry.emplace<std::vector<GPUInstance>>(entity, gpuInstances);
-			// Update VKGPUIB
 			registry.patch<VulkanGPUInstanceBuffer>(entity);
 
-			vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vulkanRenderer.pipelineLayout, 0, 1, &vulkanRenderer.descriptorSets[frame], 0, nullptr);
+			vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vulkanRenderer.pipelineLayout, 0, 1, &vulkanRenderer.descriptorSets[currentBuffer], 0, nullptr);
 
-			int instanceStart = 0;
-			for (const auto& geo : geoDatas)
+			vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vulkanRenderer.pipelineLayout, 1, 1, &vulkanRenderer.textureDescriptorSet, 0, nullptr);
+
+
+			// TODO: Draw all the things that need drawing
+			auto& geometryBuffer = registry.get<VulkanGeometryBuffer>(entity);
+
+			if (geometryBuffer.buffer != VK_NULL_HANDLE)
 			{
-				vkCmdDrawIndexed(commandBuffer, geo.first.indexCount, geo.second, geo.first.indexStart, geo.first.vertexStart, instanceStart);
-				instanceStart += geo.second;
+				int instanceCount = 0;
+				for (auto [data, count] : geoDatas)
+				{
+					vkCmdBindIndexBuffer(commandBuffer, geometryBuffer.buffer, data.indicesOffset, VK_INDEX_TYPE_UINT16);
+
+					VkDeviceSize offsets[] = { data.positionOffset, data.normalOffset, data.uvwOffset, data.tangentOffset };
+					VkBuffer buffers[] = { geometryBuffer.buffer, geometryBuffer.buffer, geometryBuffer.buffer, geometryBuffer.buffer };
+					vkCmdBindVertexBuffers(commandBuffer, 0, 4, buffers, offsets);
+
+					vkCmdDrawIndexed(commandBuffer, data.indexCount, count, 0, 0, instanceCount);
+					instanceCount += count;
+				}
 			}
+
 		}
 
 		vulkanRenderer.vlkSurface.EndFrame(true);
@@ -484,8 +400,7 @@ namespace DRAW
 		// wait till everything has completed
 		vkDeviceWaitIdle(vulkanRenderer.device);
 		// Remove Buffer compontents
-		registry.remove<VulkanIndexBuffer>(entity);
-		registry.remove<VulkanVertexBuffer>(entity);
+		registry.remove<VulkanGeometryBuffer>(entity);
 		registry.remove<VulkanGPUInstanceBuffer>(entity);
 		registry.remove<VulkanUniformBuffer>(entity);
 

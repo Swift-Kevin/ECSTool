@@ -11,11 +11,6 @@ namespace BEHAVIORS
 		// Add an entity to handle all the graphics data
 		auto display = registry.create();
 
-		// Placing here to reduce occurrence of a json race condition crash
-		std::string jsonPath = config->at("Level1").at("levelFile").as<std::string>();
-		std::string modelsPath = config->at("Level1").at("modelPath").as<std::string>();
-		registry.emplace<DRAW::CPULevel>(display, DRAW::CPULevel{ jsonPath, modelsPath });
-
 		// Emplace and initialize Window component
 		int windowWidth = (*config).at("Window").at("width").as<int>();
 		int windowHeight = (*config).at("Window").at("height").as<int>();
@@ -52,8 +47,11 @@ namespace BEHAVIORS
 
 		registry.emplace<DRAW::VulkanRenderer>(display);
 
-		// Emplace GPULevel
-		registry.emplace<DRAW::GPULevel>(display);
+		// Emplace Level Data
+		DRAW::GLTFLevel levelInfo;
+		std::string gltfPath = config->at("Level1").at("levelFile").as<std::string>();
+		levelInfo.levelPath = gltfPath;
+		registry.emplace<DRAW::GLTFLevel>(display, levelInfo);
 
 		// Register for Vulkan clean up
 		GW::CORE::GEventResponder shutdown;
@@ -86,13 +84,14 @@ namespace BEHAVIORS
 			UTIL::SetupPlayer(registry, playerEntity);
 		}
 
-		// Try spawning in the sun?
+		// Try spawning some planets
 		{
 			auto sunEntity = registry.create();
-			UTIL::CreateModelEntity(registry, sunEntity, "Sun");
 			auto mercuryEntity = registry.create();
-			UTIL::CreateModelEntity(registry, mercuryEntity, "Mercury");
 			auto venusEntity = registry.create();
+
+			UTIL::CreateModelEntity(registry, sunEntity, "Sun");
+			UTIL::CreateModelEntity(registry, mercuryEntity, "Mercury");
 			UTIL::CreateModelEntity(registry, venusEntity, "Venus");
 		}
 

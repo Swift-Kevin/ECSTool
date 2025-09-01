@@ -1,5 +1,8 @@
 #include "DrawComponents.h"
 #include "../CCL.h"
+#include "../../ExternalAPI/TinyGLTF/tiny_gltf.h"
+#include "./Utility/TextureUtils.h"
+
 namespace DRAW
 {
 	//*** HELPERS ***//
@@ -15,85 +18,52 @@ namespace DRAW
 
 	//*** SYSTEMS ***//
 	// Forward Declare
-	void Destroy_VulkanVertexBuffer(entt::registry& registry, entt::entity entity);
+	void Destroy_VulkanGeometryBuffer(entt::registry& registry, entt::entity entity)
+	{
+		if (registry.all_of<VulkanGeometryBuffer, VulkanRenderer>(entity))
+		{
+			auto& vkRenderer = registry.get<VulkanRenderer>(entity);
+			auto& geometryBuffer = registry.get<VulkanGeometryBuffer>(entity);
+			vkDeviceWaitIdle(vkRenderer.device);
+			// Release allocated buffers, shaders & pipeline
+			vkDestroyBuffer(vkRenderer.device, geometryBuffer.buffer, nullptr);
+			vkFreeMemory(vkRenderer.device, geometryBuffer.memory, nullptr);
+		}
+	}
 
-	void Update_VulkanVertexBuffer(entt::registry& registry, entt::entity entity) {
-		auto& vertex_buffer = registry.get<VulkanVertexBuffer>(entity);
+	void Update_VulkanGeometryBuffer(entt::registry& registry, entt::entity entity) 
+	{
+		auto& gpuBuffer = registry.get<VulkanGeometryBuffer>(entity);
 		// upload the buffer to the GPU
-		if (registry.all_of<VulkanRenderer, std::vector<H2B::VERTEX>>(entity)) {
-			// if there is already a vertex buffer attached, lets delete it
-			if (vertex_buffer.buffer != VK_NULL_HANDLE)
-				Destroy_VulkanVertexBuffer(registry, entity);
+		if (registry.all_of<VulkanRenderer, std::vector<unsigned char>>(entity)) 
+		{
+			// delete already attached component
+			if (gpuBuffer.buffer != VK_NULL_HANDLE)
+			{
+				Destroy_VulkanGeometryBuffer(registry, entity);
+			}
+
 			// if there is a cpu buffer attached, lets upload it to the GPU then delete it
 			auto& vkRenderer = registry.get<VulkanRenderer>(entity);
-			auto& vertex_data = registry.get<std::vector<H2B::VERTEX>>(entity);
+			auto& geometryData = registry.get<std::vector<unsigned char>>(entity);
+			
 			// Transfer triangle data to the vertex buffer. (staging would be preferred here)
-			GvkHelper::create_buffer(vkRenderer.physicalDevice, vkRenderer.device, sizeof(H2B::VERTEX) * vertex_data.size(),
-				VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
-				VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &vertex_buffer.buffer, &vertex_buffer.memory);
-			GvkHelper::write_to_buffer(vkRenderer.device, vertex_buffer.memory,
-				vertex_data.data(), sizeof(H2B::VERTEX) * vertex_data.size());
+			GvkHelper::create_buffer(vkRenderer.physicalDevice, vkRenderer.device, sizeof(unsigned char) * geometryData.size(),
+				VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, 
+				VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, 
+				&gpuBuffer.buffer, &gpuBuffer.memory);
+
+			GvkHelper::write_to_buffer(vkRenderer.device, gpuBuffer.memory,
+				geometryData.data(), sizeof(unsigned char) * geometryData.size());
+
 			// remove the Vertex Data
 			vkDeviceWaitIdle(vkRenderer.device);
-			registry.remove<std::vector<H2B::VERTEX>>(entity);
+			registry.remove<std::vector<unsigned char>>(entity);
 		}
 	}
 
-	void Destroy_VulkanVertexBuffer(entt::registry& registry, entt::entity entity) {
-		// check if the buffer is allocated, if so, release it
-		if (registry.all_of<VulkanVertexBuffer, VulkanRenderer>(entity)) {
-
-			auto& vkRenderer = registry.get<VulkanRenderer>(entity);
-			auto& vertex_buffer = registry.get<VulkanVertexBuffer>(entity);
-			vkDeviceWaitIdle(vkRenderer.device);
-			// Release allocated buffers, shaders & pipeline
-			vkDestroyBuffer(vkRenderer.device, vertex_buffer.buffer, nullptr);
-			vkFreeMemory(vkRenderer.device, vertex_buffer.memory, nullptr);
-		}
-
-	}
-
-	// Forward declare
-	void Destroy_VulkanIndexBuffer(entt::registry& registry, entt::entity entity);
-
-	void Update_VulkanIndexBuffer(entt::registry& registry, entt::entity entity) {
-		auto& index_buffer = registry.get<VulkanIndexBuffer>(entity);
-		// upload the buffer to the GPU
-		if (registry.all_of<VulkanRenderer, std::vector<unsigned int>>(entity)) {
-			// if there is already a gpu buffer attached, lets delete it
-			if (index_buffer.buffer != VK_NULL_HANDLE)
-				Destroy_VulkanIndexBuffer(registry, entity);
-			// if there is index data attached, lets upload it to the GPU then delete it
-			auto& vkRenderer = registry.get<VulkanRenderer>(entity);
-			auto& index_data = registry.get<std::vector<unsigned int>>(entity);
-
-			// Transfer triangle data to the vertex buffer. (staging would be preferred here)
-			GvkHelper::create_buffer(vkRenderer.physicalDevice, vkRenderer.device, sizeof(unsigned int) * index_data.size(),
-				VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
-				VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &index_buffer.buffer, &index_buffer.memory);
-			GvkHelper::write_to_buffer(vkRenderer.device, index_buffer.memory,
-				index_data.data(), sizeof(unsigned int) * index_data.size());
-			// remove the index data
-			vkDeviceWaitIdle(vkRenderer.device);
-			registry.remove<std::vector<unsigned int>>(entity);
-		}
-	}
-
-	void Destroy_VulkanIndexBuffer(entt::registry& registry, entt::entity entity) {
-		// check if the buffer is allocated, if so, release it
-		if (registry.all_of<VulkanIndexBuffer, VulkanRenderer>(entity)) {
-
-			auto& vkRenderer = registry.get<VulkanRenderer>(entity);
-			auto& index_buffer = registry.get<VulkanIndexBuffer>(entity);
-
-			vkDeviceWaitIdle(vkRenderer.device);
-			// Release allocated buffers, shaders & pipeline
-			vkDestroyBuffer(vkRenderer.device, index_buffer.buffer, nullptr);
-			vkFreeMemory(vkRenderer.device, index_buffer.memory, nullptr);
-		}
-	}
-
-	void Construct_VulkanGPUInstanceBuffer(entt::registry& registry, entt::entity entity) {
+	void Construct_VulkanGPUInstanceBuffer(entt::registry& registry, entt::entity entity) 
+	{
 		auto& bufferComponent = registry.get<VulkanGPUInstanceBuffer>(entity);
 		auto& renderer = registry.get<VulkanRenderer>(entity);
 
@@ -112,7 +82,21 @@ namespace DRAW
 	}
 		
 	// Forward declare
-	void Destroy_VulkanGPUInstanceBuffer(entt::registry& registry, entt::entity entity);
+	void Destroy_VulkanGPUInstanceBuffer(entt::registry& registry, entt::entity entity)
+	{
+		auto& gpuBuffer = registry.get<VulkanGPUInstanceBuffer>(entity);
+		auto& renderer = registry.get<VulkanRenderer>(entity);
+
+		vkDeviceWaitIdle(renderer.device);
+		for (auto handle : gpuBuffer.buffer)
+		{
+			vkDestroyBuffer(renderer.device, handle, nullptr);
+		}
+		for (auto data : gpuBuffer.memory)
+		{
+			vkFreeMemory(renderer.device, data, nullptr);
+		}
+	}
 
 	void Update_VulkanGPUInstanceBuffer(entt::registry& registry, entt::entity entity) {
 		if (!registry.all_of<std::vector<GPUInstance>>(entity))
@@ -160,22 +144,7 @@ namespace DRAW
 		vkDeviceWaitIdle(renderer.device);
 		registry.remove<std::vector<GPUInstance>>(entity);
 	}
-
-	void Destroy_VulkanGPUInstanceBuffer(entt::registry& registry, entt::entity entity) {
-		auto& gpuBuffer = registry.get<VulkanGPUInstanceBuffer>(entity);
-		auto& renderer = registry.get<VulkanRenderer>(entity);
-
-		vkDeviceWaitIdle(renderer.device);
-		for (auto handle : gpuBuffer.buffer)
-		{
-			vkDestroyBuffer(renderer.device, handle, nullptr);
-		}
-		for (auto data : gpuBuffer.memory)
-		{
-			vkFreeMemory(renderer.device, data, nullptr);
-		}
-	}
-
+	
 	void Construct_VulkanUniformBuffer(entt::registry& registry, entt::entity entity) {
 
 		auto& bufferComponent = registry.get<VulkanUniformBuffer>(entity);
@@ -233,11 +202,8 @@ namespace DRAW
 	// Use this MACRO to connect the EnTT Component Logic
 	CONNECT_COMPONENT_LOGIC() {
 		// register the Window component's logic
-		registry.on_update<VulkanVertexBuffer>().connect<Update_VulkanVertexBuffer>();
-		registry.on_destroy<VulkanVertexBuffer>().connect<Destroy_VulkanVertexBuffer>();
-
-		registry.on_update<VulkanIndexBuffer>().connect<Update_VulkanIndexBuffer>();
-		registry.on_destroy<VulkanIndexBuffer>().connect<Destroy_VulkanIndexBuffer>();
+		registry.on_update<VulkanGeometryBuffer>().connect<Update_VulkanGeometryBuffer>();
+		registry.on_destroy<VulkanGeometryBuffer>().connect<Destroy_VulkanGeometryBuffer>();
 
 		registry.on_construct<VulkanGPUInstanceBuffer>().connect<Construct_VulkanGPUInstanceBuffer>();
 		registry.on_update<VulkanGPUInstanceBuffer>().connect<Update_VulkanGPUInstanceBuffer>();

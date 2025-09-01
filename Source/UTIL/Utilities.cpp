@@ -5,33 +5,6 @@ namespace UTIL
 	void CreateModelEntity(entt::registry& registry, entt::entity entity, std::string _modelFromIni, GW::MATH::GMATRIXF* transform)
 	{
 		std::shared_ptr<const GameConfig> config = registry.ctx().get<UTIL::Config>().gameConfig;
-
-		// Get models
-		auto& meshesOnEntity = registry.emplace<DRAW::MeshCollection>(entity).entites;
-		std::string modelName = config.get()->at(_modelFromIni).at("model").as<std::string>();
-		auto& modelsMeshs = registry.ctx().get<DRAW::ModelManager>().models[modelName].entites;
-
-		// Use overriden transform if passed
-		if (transform) {
-			registry.emplace<GAME::Transform>(entity, *transform);
-		}
-		else {
-			registry.emplace<GAME::Transform>(entity, registry.get<DRAW::GPUInstance>(modelsMeshs[0]).transform);
-		}
-
-		for (entt::entity ent : modelsMeshs)
-		{
-			// Create entity per mesh
-			auto copyEntity = registry.create();
-			meshesOnEntity.push_back(copyEntity);
-
-			// Fix transform if overridden
-			DRAW::GPUInstance copyGPU = registry.get<DRAW::GPUInstance>(ent);
-			copyGPU.transform = transform ? *transform : copyGPU.transform = registry.get<DRAW::GPUInstance>(ent).transform;
-
-			registry.emplace<DRAW::GPUInstance>(copyEntity, copyGPU);
-			registry.emplace<DRAW::GeometryData>(copyEntity, registry.get<DRAW::GeometryData>(ent));
-		}
 	}
 
 	void SetupPlayer(entt::registry& registry, entt::entity entity)

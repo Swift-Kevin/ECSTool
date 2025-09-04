@@ -8,38 +8,38 @@ namespace GAME
 {
 	void UpdateMeshTransforms(entt::registry& registry)
 	{
-		//auto& allEntities = registry.view<Transform, DRAW::MeshCollection>();
+		auto& allEntities = registry.view<Transform, DRAW::MeshCollection>();
 
-		//for (const entt::entity& entity : allEntities)
-		//{
-		//	// can use view for accessing the transform
-		//	GW::MATH::GMATRIXF& currTransform = registry.get<Transform>(entity).transform;
-		//	auto& currentMeshs = registry.get<DRAW::MeshCollection>(entity).entites;
+		for (const entt::entity& entity : allEntities)
+		{
+			// can use view for accessing the transform
+			GW::MATH::GMATRIXF& currTransform = registry.get<Transform>(entity).transform;
+			auto& currentMeshs = registry.get<DRAW::MeshCollection>(entity).entites;
 
-		//	for (auto& mesh : currentMeshs)
-		//	{
-		//		// copy over transform to gpu instance
-		//		registry.get<DRAW::GPUInstance>(mesh).transform = currTransform;
-		//	}
-		//}
+			for (auto& mesh : currentMeshs)
+			{
+				// copy over transform to gpu instance
+				registry.get<DRAW::GPUInstance>(mesh).transform = currTransform;
+			}
+		}
 	}
 
 	void UpdateEntityVelocities(entt::registry& registry)
 	{
-		//// Only delta time is important in this
-		//auto& deltaTime = registry.ctx().get<UTIL::DeltaTime>().dtSec;
-		//auto& allEntities = registry.view<Transform, Velocity>();
+		// Only delta time is important in this
+		auto& deltaTime = registry.ctx().get<UTIL::DeltaTime>().dtSec;
+		auto& allEntities = registry.view<Transform, Velocity, DRAW::MeshCollection>();
 
-		//// Update only the entities and not the meshs
-		//for (const entt::entity& entity : allEntities)
-		//{
-		//	// add velocity to position
-		//	auto& pos = registry.get<Transform>(entity).transform.row4;
-		//	auto velocity = registry.get<Velocity>(entity).velocity;
+		// Update only the entities and not the meshs
+		for (const entt::entity& entity : allEntities)
+		{
+			// add velocity to position
+			auto& pos = registry.get<Transform>(entity).transform.row4;
+			auto velocity = registry.get<Velocity>(entity).velocity;
 
-		//	GW::MATH::GVector::ScaleF(velocity, deltaTime, velocity);
-		//	GW::MATH::GVector::AddVectorF(pos, velocity, pos);
-		//}
+			GW::MATH::GVector::ScaleF(velocity, deltaTime, velocity);
+			GW::MATH::GVector::AddVectorF(pos, velocity, pos);
+		}
 	}
 
 	void UpdateGameManager(entt::registry& registry, entt::entity entity)

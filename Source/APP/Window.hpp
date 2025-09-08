@@ -31,6 +31,10 @@ namespace APP
 
 		// If we get a close window event, emplace a WindowClosed component
 		auto& win = registry.get<GW::SYSTEM::GWindow>(entity);
+		
+		std::string fps = std::to_string(1 / registry.ctx().get<UTIL::DeltaTime>().dtSec);
+		win.SetWindowName(fps.c_str());
+
 		if (-win.ProcessWindowEvents()) {
 			registry.emplace_or_replace<WindowClosed>(entity);
 		}
@@ -39,7 +43,6 @@ namespace APP
 			// update the window's GVulkanSurface if it has one
 			registry.patch<DRAW::VulkanRenderer>(entity);
 		}
-		
 	}
 
 	// Use this MACRO to connect the EnTT Component Logic

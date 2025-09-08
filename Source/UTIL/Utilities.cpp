@@ -34,18 +34,13 @@ namespace UTIL
 		}
 	}
 
-	void SetupPlayer(entt::registry& registry, entt::entity entity)
-	{
-
-	}
-
 	void SetupCamera(entt::registry& registry, entt::entity entity)
 	{
 		// Create a camera and emplace it
 		GW::MATH::GMATRIXF initialCamera;
-		GW::MATH::GVECTORF translate = { 0.0f,  45.0f, -5.0f };
-		GW::MATH::GVECTORF lookat = { 0.0f, 0.0f, 0.0f };
-		GW::MATH::GVECTORF up = { 0.0f, 1.0f, 0.0f };
+		GW::MATH::GVECTORF translate = { 0, 0, 0 };
+		GW::MATH::GVECTORF lookat = { 0, 0, 0 };
+		GW::MATH::GVECTORF up = { 0, 1, 0 };
 		GW::MATH::GMatrix::TranslateGlobalF(initialCamera, translate, initialCamera);
 		GW::MATH::GMatrix::LookAtLHF(translate, lookat, up, initialCamera);
 		// Inverse to turn it into a camera matrix, not a view matrix. This will let us do
@@ -56,11 +51,16 @@ namespace UTIL
 
 	GW::MATH::GVECTORF GetRandomVelocityVector()
 	{
-		GW::MATH::GVECTORF vel = { float((rand() % 20) - 10), 0.0f, float((rand() % 20) - 10) };
+		GW::MATH::GVECTORF vel = { float((rand() % 20) - 10), float((rand() % 20) - 10), float((rand() % 20) - 10) };
 		if (vel.x <= 0.0f && vel.x > -1.0f)
 			vel.x = -1.0f;
 		else if (vel.x >= 0.0f && vel.x < 1.0f)
 			vel.x = 1.0f;
+
+		if (vel.y <= 0.0f && vel.y > -1.0f)
+			vel.y = -1.0f;
+		else if (vel.y >= 0.0f && vel.y < 1.0f)
+			vel.y = 1.0f;
 
 		if (vel.z <= 0.0f && vel.z > -1.0f)
 			vel.z = -1.0f;
@@ -70,6 +70,20 @@ namespace UTIL
 		GW::MATH::GVector::NormalizeF(vel, vel);
 
 		return vel;
+	}
+
+	GW::MATH::GMATRIXF GetRandomTransform(GW::MATH::GVECTORF min, GW::MATH::GVECTORF max)
+	{
+		GW::MATH::GMATRIXF transform = GW::MATH::GIdentityMatrixF;
+		transform.row4.x = GetRandomRange(min.x, max.x);
+		transform.row4.y = GetRandomRange(min.y, max.y);
+		transform.row4.z = GetRandomRange(min.z, max.z);
+		return transform;
+	}
+
+	float GetRandomRange(float min, float max)
+	{
+		return (static_cast <float> (rand() % (int)max) / static_cast <float> (RAND_MAX)) + min;
 	}
 
 	void PrintVector(GW::MATH::GVECTORF toPrint)

@@ -98,10 +98,8 @@ namespace DRAW
 			VulkanGPUInstanceBuffer{ 16 }); // Start with a reasonable size of elements. The Buffer will grow if it needs to later
 		auto& uniformBuffer = registry.emplace<VulkanUniformBuffer>(entity);
 
-
 		for (int i = 0; i < frameCount; i++)
 		{
-
 			VkDescriptorBufferInfo uniformBufferInfo = { uniformBuffer.buffer[i], 0, VK_WHOLE_SIZE };
 			VkWriteDescriptorSet uniformWrite = {};
 			uniformWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;

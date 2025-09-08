@@ -104,13 +104,13 @@ namespace DRAW
 
 		for (unsigned int i = 0; i < frameCount; i++)
 		{
-			GvkHelper::create_buffer(renderer.physicalDevice, renderer.device, sizeof(GPUInstance)*bufferComponent.element_count,
+			GvkHelper::create_buffer(renderer.physicalDevice, renderer.device, sizeof(GPUInstance) * bufferComponent.element_count,
 				VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
 				VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &bufferComponent.buffer[i], &bufferComponent.memory[i]);
 		}
-		
+
 	}
-		
+
 	// Forward declare
 	void Destroy_VulkanGPUInstanceBuffer(entt::registry& registry, entt::entity entity);
 
@@ -118,17 +118,17 @@ namespace DRAW
 		if (!registry.all_of<std::vector<GPUInstance>>(entity))
 			return; // No Instances, so nothing to write. Bail
 
-		auto& gpuBuffer = registry.get<VulkanGPUInstanceBuffer>(entity);		
+		auto& gpuBuffer = registry.get<VulkanGPUInstanceBuffer>(entity);
 		auto& instances = registry.get<std::vector<GPUInstance>>(entity);
 		auto& renderer = registry.get<VulkanRenderer>(entity);
 
 		// Resize buffer if needed
 		if (instances.size() > gpuBuffer.element_count)
-		{			
+		{
 			Destroy_VulkanGPUInstanceBuffer(registry, entity);
 
 			gpuBuffer.element_count *= 2; // Double the storage size if we ran out
-			
+
 			for (unsigned int i = 0; i < gpuBuffer.buffer.size(); i++)
 			{
 				GvkHelper::create_buffer(renderer.physicalDevice, renderer.device, sizeof(GPUInstance) * gpuBuffer.element_count,
@@ -146,7 +146,7 @@ namespace DRAW
 
 				vkUpdateDescriptorSets(renderer.device, 1, &storageWrite, 0, nullptr);
 			}
-		}		
+		}
 
 		if (instances.size() > 0)
 		{

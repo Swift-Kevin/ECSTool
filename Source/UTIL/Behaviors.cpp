@@ -39,15 +39,18 @@ namespace BEHAVIORS
 		// Create a transient component to initialize the Renderer
 		std::string vertShader = (*config).at("Shaders").at("vertex").as<std::string>();
 		std::string pixelShader = (*config).at("Shaders").at("pixel").as<std::string>();
+		float nearPlane = (*config).at("Render").at("near").as<float>();
+		float farPlane = (*config).at("Render").at("far").as<float>();
+		float fov = (*config).at("Render").at("fov").as<float>();
 		registry.emplace<DRAW::VulkanRendererInitialization>(display,
 			DRAW::VulkanRendererInitialization
 			{
 				vertShader, pixelShader, // shader names
 				{ {0, 0, 0, 1} } , // clear color
 				{ 1.0f, 0u }, // depth stencil
-				90.f, // FOV
-				0.1f, // near
-				100.0f // far
+				fov, // FOV
+				nearPlane, // near
+				farPlane // far
 			});
 
 		registry.emplace<DRAW::VulkanRenderer>(display);
@@ -83,10 +86,16 @@ namespace BEHAVIORS
 		{
 			auto playerEntity = registry.create();
 			registry.emplace<GAME::Player>(playerEntity);
-			UTIL::SetupPlayer(registry, playerEntity);
+
+			GW::MATH::GVECTORF pos = { 50, 15, -5, 1 };
+			GW::MATH::GMATRIXF startingTransform = GW::MATH::GIdentityMatrixF;
+			GW::MATH::GMatrix::TranslateGlobalF(startingTransform, pos, startingTransform);
+			GW::MATH::GMatrix::RotateYLocalF(startingTransform, G_DEGREE_TO_RADIAN_F(-60), startingTransform);
+			GW::MATH::GMatrix::RotateXLocalF(startingTransform, G_DEGREE_TO_RADIAN_F(15), startingTransform);
+			registry.emplace<GAME::Transform>(playerEntity, startingTransform);
 		}
 
-		// Try spawning in the sun?
+		// Try spawning in the lots of planets?
 		{
 			auto sunEntity = registry.create();
 			UTIL::CreateModelEntity(registry, sunEntity, "Sun");
@@ -94,6 +103,18 @@ namespace BEHAVIORS
 			UTIL::CreateModelEntity(registry, mercuryEntity, "Mercury");
 			auto venusEntity = registry.create();
 			UTIL::CreateModelEntity(registry, venusEntity, "Venus");
+			auto earthEntity = registry.create();
+			UTIL::CreateModelEntity(registry, earthEntity, "Earth");
+			auto marsEntity = registry.create();
+			UTIL::CreateModelEntity(registry, marsEntity, "Mars");
+			auto jupiterEntity = registry.create();
+			UTIL::CreateModelEntity(registry, jupiterEntity, "Jupiter");
+			auto saturnEntity = registry.create();
+			UTIL::CreateModelEntity(registry, saturnEntity, "Saturn");
+			auto uranusEntity = registry.create();
+			UTIL::CreateModelEntity(registry, uranusEntity, "Uranus");
+			auto neptuneEntity = registry.create();
+			UTIL::CreateModelEntity(registry, neptuneEntity, "Neptune");
 		}
 
 		// Create Gameplay Entity to manage all gameplay systems
@@ -118,7 +139,7 @@ namespace BEHAVIORS
 			double elapsed = std::chrono::duration<double>(std::chrono::steady_clock::now() - start).count();
 
 			start = std::chrono::steady_clock::now();
-			// Cap delta time to min 30 fps. This will prevent too much time from simulating when dragging the window
+			// Cap delta time to min 30 fps.
 			if (elapsed > 1.0 / 30.0) { elapsed = 1.0 / 30.0; }
 
 			deltaTime = elapsed;

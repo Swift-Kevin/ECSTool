@@ -15,6 +15,8 @@ namespace GAME
 	///*** Components ***///
 	struct Transform {
 		GW::MATH::GMATRIXF transform;
+
+		GW::MATH::GVECTORF& Position() { return transform.row4; };
 	};
 
 	struct GameManager {

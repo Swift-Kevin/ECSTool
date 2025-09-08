@@ -47,15 +47,15 @@ namespace GAME
 		if (registry.any_of<GameOver>(entity))
 			return;
 
-		// Update Velocities and Transforms
-		UpdateEntityVelocities(registry);
-		UpdateMeshTransforms(registry);
-
 		auto allPlayers = registry.group<Player>();
 		for (auto currentPlayer : allPlayers)
 		{
 			registry.patch<Player>(currentPlayer);
 		}
+
+		// Update Velocities and Transforms
+		UpdateEntityVelocities(registry);
+		UpdateMeshTransforms(registry);
 	}
 
 	CONNECT_COMPONENT_LOGIC() {

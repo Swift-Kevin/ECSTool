@@ -20,6 +20,7 @@ file(GLOB APIS CONFIGURE_DEPENDS
 # GLOB source files
 file(GLOB_RECURSE HEADERS CONFIGURE_DEPENDS ./Source/*.h)
 file(GLOB_RECURSE CPPS CONFIGURE_DEPENDS ./Source/*.cpp)
+file(GLOB_RECURSE HPPS CONFIGURE_DEPENDS ./Source/*.hpp)
 file(GLOB_RECURSE SHADER_FILES CONFIGURE_DEPENDS ./Shaders/*.hlsl)
 file(GLOB_RECURSE INIS CONFIGURE_DEPENDS ./SaveFiles/*.ini)
 
@@ -32,6 +33,7 @@ if (WIN32)
 	set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT ${PROJECT_NAME})
   	add_executable(${PROJECT_NAME}
         ${CPPS}
+        ${HPPS}
         ${HEADERS}
         ${APIS}
     	${SHADER_FILES}
@@ -44,6 +46,7 @@ if (WIN32)
 		${APIS} 
 		${HEADERS} 
 		${CPPS} 
+		${HPPS} 
 		${SHADER_FILES}
 		${INIS}
 	)

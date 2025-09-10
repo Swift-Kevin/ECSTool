@@ -37,14 +37,8 @@ namespace UTIL
 	void SetupCamera(entt::registry& registry, entt::entity entity)
 	{
 		// Create a camera and emplace it
-		GW::MATH::GMATRIXF initialCamera;
-		GW::MATH::GVECTORF translate = { 0, 0, 0 };
-		GW::MATH::GVECTORF lookat = { 0, 0, 0 };
-		GW::MATH::GVECTORF up = { 0, 1, 0 };
-		GW::MATH::GMatrix::TranslateGlobalF(initialCamera, translate, initialCamera);
-		GW::MATH::GMatrix::LookAtLHF(translate, lookat, up, initialCamera);
-		// Inverse to turn it into a camera matrix, not a view matrix. This will let us do
-		// camera manipulation in the component easier
+		GW::MATH::GMATRIXF initialCamera = GW::MATH::GIdentityMatrixF;
+		// Inverse so it can be manipulated easier
 		GW::MATH::GMatrix::InverseF(initialCamera, initialCamera);
 		registry.emplace<DRAW::Camera>(entity, DRAW::Camera{ initialCamera });
 	}

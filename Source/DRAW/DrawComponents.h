@@ -11,6 +11,7 @@ namespace DRAW
 	struct GPULevel {};
 
 	//*** COMPONENTS ***//
+#pragma	region Vulkan
 	struct VulkanRendererInitialization
 	{
 		std::string vertexShaderName = "";
@@ -37,6 +38,7 @@ namespace DRAW
 		VkDescriptorPool descriptorPool = nullptr;
 		std::vector<VkDescriptorSet> descriptorSets;
 		VkClearValue clrAndDepth[2];
+		unsigned int frameCount = 0;
 	};
 
 	struct VulkanVertexBuffer
@@ -83,6 +85,7 @@ namespace DRAW
 		std::vector<VkBuffer> buffer;
 		std::vector<VkDeviceMemory> memory;
 	};
+#pragma endregion
 
 	struct Camera
 	{
@@ -94,7 +97,6 @@ namespace DRAW
 		std::string modelFilePath;
 		Level_Data gameLevel;
 	};
-
 
 	struct MeshCollection {
 		std::vector<entt::entity> entites;

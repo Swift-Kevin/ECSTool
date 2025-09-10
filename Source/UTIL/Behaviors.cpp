@@ -2,8 +2,10 @@
 
 namespace BEHAVIORS
 {
-	// Called in main loop to update graphics behaviors
-	// Responsible for Loading Level, Creating VulkanRenderer, and all VulkanInstances
+	/// <summary>
+	/// Loads all Graphics related data
+	/// </summary>
+	/// <param name="registry">holds all ECS info</param>
 	void GraphicsBehavior(entt::registry& registry)
 	{
 		std::shared_ptr<const GameConfig> config = registry.ctx().get<UTIL::Config>().gameConfig;
@@ -76,13 +78,25 @@ namespace BEHAVIORS
 		UTIL::SetupCamera(registry, display);
 	}
 
-	// This function will be called by the main loop to update the gameplay
-	// It will be responsible for updating the VulkanInstances and any other gameplay components
+	/// <summary>
+	/// Handles creation of UI
+	/// </summary>
+	/// <param name="registry">holds all ECS info</param>
+	void UIBehavior(entt::registry& registry)
+	{
+		auto uiEntity = registry.create();		
+		UI::UIData& uiComp = registry.emplace<UI::UIData>(uiEntity);
+	}
+
+	/// <summary>
+	/// Run all gameplay updates
+	/// </summary>
+	/// <param name="registry">holds all ECS info</param>
 	void GameplayBehavior(entt::registry& registry)
 	{
 		std::shared_ptr<const GameConfig> config = registry.ctx().get<UTIL::Config>().gameConfig;
 
-		// Player (visible in game)
+		// Player (invisible in game)
 		{
 			auto playerEntity = registry.create();
 			registry.emplace<GAME::Player>(playerEntity);
@@ -95,7 +109,7 @@ namespace BEHAVIORS
 			registry.emplace<GAME::Transform>(playerEntity, startingTransform);
 		}
 
-		// Try spawning in the lots of planets?
+		// Spawn the planets
 		{
 			auto sunEntity = registry.create();
 			UTIL::CreateModelEntity(registry, sunEntity, "Sun");
@@ -124,8 +138,10 @@ namespace BEHAVIORS
 		}
 	}
 
-	// This function will be called by the main loop to update the main loop
-	// It will be responsible for updating any created windows and handling any input
+	/// <summary>
+	/// Application Loop
+	/// </summary>
+	/// <param name="registry">holds all ECS info</param>
 	void MainLoopBehavior(entt::registry& registry)
 	{
 		int closedCount;

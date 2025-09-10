@@ -8,6 +8,8 @@
 #pragma comment(lib, "shaderc_combined.lib") 
 #endif
 
+#include "../DRAW/UserInterfaceComponents.h"
+
 namespace DRAW
 {
 	//*** HELPER METHODS ***//
@@ -38,9 +40,8 @@ namespace DRAW
 	{
 		auto& vulkanRenderer = registry.get<VulkanRenderer>(entity);
 
-		unsigned int frameCount;
-		vulkanRenderer.vlkSurface.GetSwapchainImageCount(frameCount);
-		vulkanRenderer.descriptorSets.resize(frameCount);
+		vulkanRenderer.vlkSurface.GetSwapchainImageCount(vulkanRenderer.frameCount);
+		vulkanRenderer.descriptorSets.resize(vulkanRenderer.frameCount);
 
 #pragma region Descriptor Layout
 		VkDescriptorSetLayoutBinding layoutBinding[2] = {};
@@ -69,12 +70,12 @@ namespace DRAW
 		VkDescriptorPoolCreateInfo descriptorpool_create_info = {};
 		descriptorpool_create_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
 		VkDescriptorPoolSize descriptorpool_size[2] = {
-			{ VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, frameCount },
-			{ VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, frameCount }
+			{ VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, vulkanRenderer.frameCount },
+			{ VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, vulkanRenderer.frameCount }
 		};
 		descriptorpool_create_info.poolSizeCount = 2;
 		descriptorpool_create_info.pPoolSizes = descriptorpool_size;
-		descriptorpool_create_info.maxSets = frameCount;
+		descriptorpool_create_info.maxSets = vulkanRenderer.frameCount;
 		descriptorpool_create_info.flags = 0;
 		descriptorpool_create_info.pNext = nullptr;
 		vkCreateDescriptorPool(vulkanRenderer.device, &descriptorpool_create_info, nullptr, &vulkanRenderer.descriptorPool);
@@ -87,7 +88,7 @@ namespace DRAW
 		allocateInfo.descriptorPool = vulkanRenderer.descriptorPool;
 		allocateInfo.pSetLayouts = &vulkanRenderer.descriptorLayout;
 		allocateInfo.pNext = nullptr;
-		for (int i = 0; i < frameCount; i++)
+		for (int i = 0; i < vulkanRenderer.frameCount; i++)
 		{
 			vkAllocateDescriptorSets(vulkanRenderer.device, &allocateInfo, &vulkanRenderer.descriptorSets[i]);
 		}
@@ -98,7 +99,7 @@ namespace DRAW
 			VulkanGPUInstanceBuffer{ 16 }); // Start with a reasonable size of elements. The Buffer will grow if it needs to later
 		auto& uniformBuffer = registry.emplace<VulkanUniformBuffer>(entity);
 
-		for (int i = 0; i < frameCount; i++)
+		for (int i = 0; i < vulkanRenderer.frameCount; i++)
 		{
 			VkDescriptorBufferInfo uniformBufferInfo = { uniformBuffer.buffer[i], 0, VK_WHOLE_SIZE };
 			VkWriteDescriptorSet uniformWrite = {};
@@ -314,6 +315,8 @@ namespace DRAW
 		const char* debugLayers[] = {
 			"VK_LAYER_KHRONOS_validation", // standard validation layer
 		};
+
+
 		if (-vulkanRenderer.vlkSurface.Create(win, GW::GRAPHICS::DEPTH_BUFFER_SUPPORT,
 			sizeof(debugLayers) / sizeof(debugLayers[0]),
 			debugLayers, 0, nullptr, 0, nullptr, false))
@@ -397,6 +400,33 @@ namespace DRAW
 
 	}
 
+	static void DumpImGuiState(const char* where)
+	{
+		ImDrawData* dd = ImGui::GetDrawData();
+		ImGuiIO& io = ImGui::GetIO();
+		std::cout << "=== ImGui State Dump (" << where << ") ===\n";
+		std::cout << "DisplaySize: " << io.DisplaySize.x << " x " << io.DisplaySize.y << "\n";
+
+		if (!dd) {
+			std::cout << "DrawData: NULL\n";
+		}
+		else {
+			std::cout << "DrawData->Valid: " << (dd->Valid ? "true" : "false") << "\n";
+			std::cout << "CmdListsCount: " << dd->CmdListsCount << "\n";
+			std::cout << "TotalVtxCount: " << dd->TotalVtxCount << "\n";
+			std::cout << "TotalIdxCount: " << dd->TotalIdxCount << "\n";
+			for (int i = 0; i < dd->CmdListsCount; ++i) {
+				ImDrawList* dl = dd->CmdLists[i];
+				std::cout << "  List " << i << ": Vtx=" << dl->VtxBuffer.Size << " Idx=" << dl->IdxBuffer.Size << " Cmds=" << dl->CmdBuffer.Size << "\n";
+			}
+		}
+
+		// Font info
+		void* tex = (io.Fonts && io.Fonts->TexID) ? io.Fonts->TexID : nullptr;
+		std::cout << "Fonts->TexID: " << tex << "\n";
+		std::cout << "======================================\n";
+	}
+
 	// run this code when a VulkanRenderer component is updated
 	void Update_VulkanRenderer(entt::registry& registry, entt::entity entity)
 	{
@@ -416,6 +446,12 @@ namespace DRAW
 		unsigned int currentBuffer;
 		vulkanRenderer.vlkSurface.GetSwapchainCurrentImage(currentBuffer);
 		vulkanRenderer.vlkSurface.GetCommandBuffer(currentBuffer, (void**)&commandBuffer);
+		
+		// Update UI
+		registry.patch<UI::UIData>(registry.group<UI::UIData>().front());
+		ImGui::Render();
+
+#pragma region Prep Pipeline
 
 		unsigned int windowWidth, windowHeight;
 		win.GetClientWidth(windowWidth);
@@ -434,6 +470,9 @@ namespace DRAW
 		// Get and Sort the instances
 		auto instances = registry.group<GeometryData>(entt::get<GPUInstance>, entt::exclude<DoNotRender>);
 		instances.sort<GeometryData>([](const GeometryData& a, const GeometryData& b) { return a < b; });
+#pragma endregion
+
+#pragma region Bind Geo Data
 
 		std::vector<GPUInstance> gpuInstances;
 		std::map<GeometryData, int> geoDatas;
@@ -472,6 +511,9 @@ namespace DRAW
 			}
 		}
 
+#pragma endregion
+		
+		ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), commandBuffer);
 		vulkanRenderer.vlkSurface.EndFrame(true);
 	}
 
@@ -487,6 +529,8 @@ namespace DRAW
 		registry.remove<VulkanGPUInstanceBuffer>(entity);
 		registry.remove<VulkanUniformBuffer>(entity);
 
+		UI::UIData& uiCtx = registry.get<UI::UIData>(registry.group<UI::UIData>().front());
+		vkDestroyDescriptorPool(vulkanRenderer.device, uiCtx.uiDescriptorPool, nullptr);
 
 		vkDestroyDescriptorSetLayout(vulkanRenderer.device, vulkanRenderer.descriptorLayout, nullptr);
 		vkDestroyDescriptorPool(vulkanRenderer.device, vulkanRenderer.descriptorPool, nullptr);

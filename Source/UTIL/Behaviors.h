@@ -6,11 +6,13 @@
 #include "../APP/Window.hpp"
 #include "../DRAW/DrawComponents.h"
 #include "../GAME/GameComponents.h"
+#include "../DRAW/UserInterfaceComponents.h"
 
 namespace BEHAVIORS
 {
 	// Method declarations
 	void GraphicsBehavior(entt::registry& registry);
+	void UIBehavior(entt::registry& registry);
 	void GameplayBehavior(entt::registry& registry);
 	void MainLoopBehavior(entt::registry& registry);
 

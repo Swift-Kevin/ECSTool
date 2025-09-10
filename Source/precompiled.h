@@ -26,3 +26,9 @@
 
 // Ini reader
 #include "../ExternalAPI/inifile-cpp-master/include/inicpp.h"
+
+// IMGUI
+#define IMGUI_DEFINE_MATH_OPERATORS
+#include "../ExternalAPI/imgui/imgui.h"
+#include "../ExternalAPI/imgui/imgui_impl_vulkan.h"
+#include "../ExternalAPI/imgui/imgui_impl_win32.h"

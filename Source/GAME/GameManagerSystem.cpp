@@ -44,9 +44,6 @@ namespace GAME
 
 	void UpdateGameManager(entt::registry& registry, entt::entity entity)
 	{
-		if (registry.any_of<GameOver>(entity))
-			return;
-
 		auto allPlayers = registry.group<Player>();
 		for (auto currentPlayer : allPlayers)
 		{

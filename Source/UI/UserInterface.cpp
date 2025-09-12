@@ -1,9 +1,72 @@
 #include "../CCL.h"
 #include "../UTIL/Utilities.h"
-#include "../DRAW/UserInterfaceComponents.h"
+#include "../UI/UserInterfaceComponents.h"
+
+static HWND    winHandle = nullptr;
+static WNDPROC winProc = nullptr;
+extern LRESULT ImGui_ImplWin32_WndProcHandler(HWND, UINT, WPARAM, LPARAM);
+static LRESULT CALLBACK ImGui_WndProcHook(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
+{
+	if (ImGui_ImplWin32_WndProcHandler(hWnd, msg, wParam, lParam))
+		return 1;
+	return CallWindowProc(winProc, hWnd, msg, wParam, lParam);
+}
 
 namespace UI
 {
+	void Update_UIMenuBar(entt::registry& registry, entt::entity entity)
+	{
+		// Menu Bar
+		ImGuiWindowFlags flags = {};
+		flags |= ImGuiWindowFlags_::ImGuiWindowFlags_NoResize;
+		flags |= ImGuiWindowFlags_::ImGuiWindowFlags_NoMove;
+		flags |= ImGuiWindowFlags_::ImGuiWindowFlags_NoCollapse;
+		flags |= ImGuiWindowFlags_::ImGuiWindowFlags_NoTitleBar;
+		flags |= ImGuiWindowFlags_::ImGuiWindowFlags_MenuBar;
+		flags |= ImGuiWindowFlags_::ImGuiWindowFlags_NoBackground;
+
+		ImGui::SetNextWindowPos(ImVec2(0, 0));
+		ImGui::SetNextWindowSize(ImGui::GetIO().DisplaySize);
+
+		bool open = true;
+		if (ImGui::Begin("TEST", &open, flags))
+		{
+			if (ImGui::BeginMenuBar())
+			{
+				if (ImGui::Button("Entites"))
+				{
+					registry.patch<UI::UI_ViewEntites>(entity);
+				}
+				if (ImGui::Button("Components"))
+				{
+					registry.emplace_or_replace<UI::UI_ViewComponents>(entity);
+				}
+				if (ImGui::Button("Console"))
+				{
+					registry.emplace_or_replace<UI::UI_ViewConsole>(entity);
+				}
+				
+				ImGui::EndMenuBar();
+			}
+			ImGui::End();
+		}
+	}
+
+	void Update_UIViewEntitiesMenu(entt::registry& registry, entt::entity entity)
+	{
+
+	}
+
+	void Update_UIViewComponentsMenu(entt::registry& registry, entt::entity entity)
+	{
+
+	}
+
+	void Update_UIViewConsoleMenu(entt::registry& registry, entt::entity entity)
+	{
+
+	}
+
 	void Construct_UIContext(entt::registry& registry, entt::entity entity)
 	{
 		DRAW::VulkanRenderer& vlk = registry.get<DRAW::VulkanRenderer>(registry.group<DRAW::VulkanRenderer>().front());
@@ -53,19 +116,25 @@ namespace UI
 		//this initializes the core structures of imgui
 		IMGUI_CHECKVERSION();
 		ImGui::CreateContext();
-
-		bool status = false;
-		GW::GReturn ret;
+		ImGuiIO& io = ImGui::GetIO(); (void)io;
+		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
+		io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
+		io.DisplaySize = ImVec2(width, height);
 
 		//this initializes imgui for SDL
 		GW::SYSTEM::UNIVERSAL_WINDOW_HANDLE hand;
-		ret = win.GetWindowHandle(hand);
-		status = ImGui_ImplWin32_Init(&hand);
+		if (win.GetWindowHandle(hand) != GW::GReturn::SUCCESS)
+		{
+			assert("Failed to grab window handle.");
+		}
+		if (!ImGui_ImplWin32_Init(&hand))
+		{
+			assert("Failed to grab window handle.");
+		}
 
 		VkPipelineRenderingCreateInfoKHR pcri = {};
 		pcri.sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO;
 		pcri.colorAttachmentCount = 1;
-		//pcri.pColorAttachmentFormats = vlk.frameCount;
 
 		//this initializes imgui for Vulkan
 		ImGui_ImplVulkan_InitInfo initInfo = {};
@@ -80,24 +149,30 @@ namespace UI
 		initInfo.RenderPass = vlk.renderPass;
 		initInfo.PipelineRenderingCreateInfo = pcri;
 
-		status = ImGui_ImplVulkan_Init(&initInfo);
+		if (!ImGui_ImplVulkan_Init(&initInfo))
+		{
+			assert("Failed to implement vulkan startup");
+		}
 
-		// ImGui should be initialized at this point?
-		ImGui::GetIO().DisplaySize = ImVec2(width, height);
-		VkCommandBuffer commandBuffer;
-		unsigned int currentBuffer;
-		vlk.vlkSurface.GetSwapchainCurrentImage(currentBuffer);
-		vlk.vlkSurface.GetCommandBuffer(currentBuffer, (void**)&commandBuffer);
+		if (!ImGui_ImplVulkan_CreateFontsTexture())
+		{
+			assert("Failed to implement vulkan startup");
+		}
 
-		status = ImGui_ImplVulkan_CreateFontsTexture();
+		// Register Window Input/Handling
+		winHandle = reinterpret_cast<HWND>(hand.window);
+		winProc = (WNDPROC)::GetWindowLongPtr(winHandle, GWLP_WNDPROC);
+		::SetWindowLongPtr(winHandle, GWLP_WNDPROC, (LONG_PTR)ImGui_WndProcHook);
 
-		std::cout << "GUI Loaded?";
+		// Emplace all UI menus so we can hide/show when neccesary
+		registry.emplace<UI::UI_MenuBar>(entity);
+		registry.emplace<UI::UI_ViewEntites>(entity);
+		registry.emplace<UI::UI_ViewComponents>(entity);
+		registry.emplace<UI::UI_ViewConsole>(entity);
 	}
 
 	void Update_UIContext(entt::registry& registry, entt::entity entity)
 	{
-		std::cout << "\n\n==== > Updating UI\n\n";
-
 		ImGui_ImplWin32_NewFrame();
 		ImGui_ImplVulkan_NewFrame();
 
@@ -108,11 +183,12 @@ namespace UI
 
 		ImGuiIO& io = ImGui::GetIO();
 		io.DisplaySize = ImVec2(width, height);
-		io.DisplayFramebufferScale = ImVec2(1.0f, 1.0f);
 
 		ImGui::NewFrame();
-
+		// For referencing documentation:
 		ImGui::ShowDemoWindow();
+
+		registry.patch<UI::UI_MenuBar>(entity);
 	}
 
 	void Destroy_UIContext(entt::registry& registry, entt::entity entity)
@@ -120,10 +196,23 @@ namespace UI
 		ImGui_ImplVulkan_DestroyFontsTexture();
 		ImGui_ImplWin32_Shutdown();
 		ImGui_ImplVulkan_Shutdown();
+
+		//DRAW::VulkanRenderer& vlk = registry.get<DRAW::VulkanRenderer>(registry.group<DRAW::VulkanRenderer>().front());
+		//UI::UIData& uiCtx = registry.get<UI::UIData>(registry.group<UI::UIData>().front());
+		//vkDestroyDescriptorPool(vlk.device, uiCtx.uiDescriptorPool, nullptr);
+
 		ImGui::DestroyContext();
 	}
 
-	CONNECT_COMPONENT_LOGIC() {
+	CONNECT_COMPONENT_LOGIC()
+	{
+		// All UI Menus
+		registry.on_update<UI::UI_MenuBar>().connect<Update_UIMenuBar>();
+		registry.on_update<UI::UI_ViewEntites>().connect<Update_UIViewEntitiesMenu>();
+		registry.on_update<UI::UI_ViewComponents>().connect<Update_UIViewComponentsMenu>();
+		registry.on_update<UI::UI_ViewConsole>().connect<Update_UIViewConsoleMenu>();
+
+		// UI Data Component
 		registry.on_construct<UI::UIData>().connect<Construct_UIContext>();
 		registry.on_update<UI::UIData>().connect<Update_UIContext>();
 		registry.on_destroy<UI::UIData>().connect<Destroy_UIContext>();

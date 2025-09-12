@@ -5,12 +5,17 @@
 
 namespace UI
 {
+	/* Tags */
+	struct UI_MenuBar {};
+	struct UI_ViewEntites {};
+	struct UI_ViewComponents {};
+	struct UI_ViewConsole {};
+	
+	/* Components */
 	struct UIData
 	{
-		ImGuiContext* context = nullptr;
 		VkDescriptorPool uiDescriptorPool;
 	};
-
 
 } // namespace UI
 #endif // !UI_COMPONENTS_H

@@ -8,7 +8,7 @@
 #pragma comment(lib, "shaderc_combined.lib") 
 #endif
 
-#include "../DRAW/UserInterfaceComponents.h"
+#include "../UI/UserInterfaceComponents.h"
 
 namespace DRAW
 {
@@ -400,33 +400,6 @@ namespace DRAW
 
 	}
 
-	static void DumpImGuiState(const char* where)
-	{
-		ImDrawData* dd = ImGui::GetDrawData();
-		ImGuiIO& io = ImGui::GetIO();
-		std::cout << "=== ImGui State Dump (" << where << ") ===\n";
-		std::cout << "DisplaySize: " << io.DisplaySize.x << " x " << io.DisplaySize.y << "\n";
-
-		if (!dd) {
-			std::cout << "DrawData: NULL\n";
-		}
-		else {
-			std::cout << "DrawData->Valid: " << (dd->Valid ? "true" : "false") << "\n";
-			std::cout << "CmdListsCount: " << dd->CmdListsCount << "\n";
-			std::cout << "TotalVtxCount: " << dd->TotalVtxCount << "\n";
-			std::cout << "TotalIdxCount: " << dd->TotalIdxCount << "\n";
-			for (int i = 0; i < dd->CmdListsCount; ++i) {
-				ImDrawList* dl = dd->CmdLists[i];
-				std::cout << "  List " << i << ": Vtx=" << dl->VtxBuffer.Size << " Idx=" << dl->IdxBuffer.Size << " Cmds=" << dl->CmdBuffer.Size << "\n";
-			}
-		}
-
-		// Font info
-		void* tex = (io.Fonts && io.Fonts->TexID) ? io.Fonts->TexID : nullptr;
-		std::cout << "Fonts->TexID: " << tex << "\n";
-		std::cout << "======================================\n";
-	}
-
 	// run this code when a VulkanRenderer component is updated
 	void Update_VulkanRenderer(entt::registry& registry, entt::entity entity)
 	{
@@ -528,9 +501,6 @@ namespace DRAW
 		registry.remove<VulkanVertexBuffer>(entity);
 		registry.remove<VulkanGPUInstanceBuffer>(entity);
 		registry.remove<VulkanUniformBuffer>(entity);
-
-		UI::UIData& uiCtx = registry.get<UI::UIData>(registry.group<UI::UIData>().front());
-		vkDestroyDescriptorPool(vulkanRenderer.device, uiCtx.uiDescriptorPool, nullptr);
 
 		vkDestroyDescriptorSetLayout(vulkanRenderer.device, vulkanRenderer.descriptorLayout, nullptr);
 		vkDestroyDescriptorPool(vulkanRenderer.device, vulkanRenderer.descriptorPool, nullptr);

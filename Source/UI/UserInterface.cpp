@@ -90,7 +90,7 @@ namespace UI
 
 		if (ImGui::Begin("Entities", 0, flags))
 		{
-			if (ImGui::BeginListBox("List", ImVec2(uiData.io->DisplaySize.x * 0.25f, uiData.io->DisplaySize.y * 0.9)))
+			if (ImGui::BeginListBox("", ImVec2(uiData.io->DisplaySize.x * 0.25f, uiData.io->DisplaySize.y * 0.9)))
 			{
 				for (auto entity : registry.view<entt::entity>())
 				{
@@ -105,12 +105,35 @@ namespace UI
 
 	void Update_UIViewComponentsMenu(entt::registry& registry, entt::entity entity)
 	{
-		std::cout << "Updating: Components\n";
+		//std::cout << "Updating: Components\n";
+		ImGuiWindowFlags flags = {};
+		flags |= ImGuiWindowFlags_::ImGuiWindowFlags_NoMove;
+		flags |= ImGuiWindowFlags_::ImGuiWindowFlags_NoResize;
+		flags |= ImGuiWindowFlags_::ImGuiWindowFlags_NoCollapse;
+		flags |= ImGuiWindowFlags_::ImGuiWindowFlags_NoBackground;
+
+		UI::UIData& uiData = registry.get<UI::UIData>(entity);
+		ImGui::SetNextWindowPos(ImVec2(0, uiData.io->DisplaySize.y * 0.025));
+
+		if (ImGui::Begin("Components", 0, flags))
+		{
+			if (ImGui::BeginListBox("", ImVec2(uiData.io->DisplaySize.x * 0.25f, uiData.io->DisplaySize.y * 0.9)))
+			{
+				auto& map = RegisteredComponents();
+				for (auto [compName, compIdx] : map)
+				{
+					std::string name = compName;
+					ImGui::Selectable(name.c_str(), false);
+				}
+				ImGui::EndListBox();
+			}
+		}
+		ImGui::End();
 	}
 
 	void Update_UIViewConsoleMenu(entt::registry& registry, entt::entity entity)
 	{
-		std::cout << "Updating: Console\n";
+		//std::cout << "Updating: Console\n";
 	}
 
 	void Construct_UIContext(entt::registry& registry, entt::entity entity)
@@ -232,22 +255,9 @@ namespace UI
 
 		ImGui::NewFrame();
 		// For referencing documentation:
-		ImGui::ShowDemoWindow();
+		// ImGui::ShowDemoWindow();
 
 		registry.patch<UI::UI_MenuBar>(entity);
-	}
-
-	void Destroy_UIContext(entt::registry& registry, entt::entity entity)
-	{
-		ImGui_ImplVulkan_DestroyFontsTexture();
-		ImGui_ImplWin32_Shutdown();
-		ImGui_ImplVulkan_Shutdown();
-
-		//DRAW::VulkanRenderer& vlk = registry.get<DRAW::VulkanRenderer>(registry.group<DRAW::VulkanRenderer>().front());
-		//UI::UIData& uiCtx = registry.get<UI::UIData>(registry.group<UI::UIData>().front());
-		//vkDestroyDescriptorPool(vlk.device, uiCtx.uiDescriptorPool, nullptr);
-
-		ImGui::DestroyContext();
 	}
 
 	CONNECT_COMPONENT_LOGIC()
@@ -261,7 +271,6 @@ namespace UI
 		// UI Data Component
 		registry.on_construct<UI::UIData>().connect<Construct_UIContext>();
 		registry.on_update<UI::UIData>().connect<Update_UIContext>();
-		registry.on_destroy<UI::UIData>().connect<Destroy_UIContext>();
 	}
 
 }; // namespace UI

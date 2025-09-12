@@ -3,9 +3,6 @@
 
 // Enables inline ECS component logic and system logic to be added to the ECS system
 namespace CCL {
-
-	
-
 	// struct which contains logic to add to the componentLogic list
 	struct ComponentLogic {
 		ComponentLogic(std::function<void(entt::registry& reg)> logic);

@@ -1,22 +1,25 @@
 #ifndef GAME_COMPONENTS_H_
 #define GAME_COMPONENTS_H_
 
+#include "../UTIL/ComponentReflection.h"
+
 namespace GAME
 {
 	///*** Tags ***///
-	struct Player {};
-	struct Obstacle {};
-	struct Collidable {};
-	struct GameManager {};
+	COMPONENT(Player) {};
+	COMPONENT(Obstacle) {};
+	COMPONENT(Collidable) {};
+	COMPONENT(GameManager) {};
 
 	///*** Components ***///
-	struct Transform {
+	COMPONENT(Transform)
+	{
 		GW::MATH::GMATRIXF transform;
-
 		GW::MATH::GVECTORF& Position() { return transform.row4; };
 	};
 
-	struct Velocity {
+	COMPONENT(Velocity) 
+	{
 		GW::MATH::GVECTORF velocity;
 	};
 

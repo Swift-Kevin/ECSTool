@@ -7,12 +7,12 @@
 namespace DRAW
 {
 	//*** TAGS ***//
-	struct DoNotRender {};
-	struct GPULevel {};
+	COMPONENT(DoNotRender) {};
+	COMPONENT(GPULevel) {};
 
 	//*** COMPONENTS ***//
 #pragma	region Vulkan
-	struct VulkanRendererInitialization
+	COMPONENT(VulkanRendererInitialization)
 	{
 		std::string vertexShaderName = "";
 		std::string fragmentShaderName = "";
@@ -23,7 +23,7 @@ namespace DRAW
 		float farPlane = 0.0f;
 	};
 
-	struct VulkanRenderer
+	COMPONENT(VulkanRenderer)
 	{
 		GW::GRAPHICS::GVulkanSurface vlkSurface;
 		VkDevice device = nullptr;
@@ -41,19 +41,19 @@ namespace DRAW
 		unsigned int frameCount = 0;
 	};
 
-	struct VulkanVertexBuffer
+	COMPONENT(VulkanVertexBuffer)
 	{
 		VkBuffer buffer = VK_NULL_HANDLE;
 		VkDeviceMemory memory = VK_NULL_HANDLE;
 	};
 
-	struct VulkanIndexBuffer
+	COMPONENT(VulkanIndexBuffer)
 	{
 		VkBuffer buffer = VK_NULL_HANDLE;
 		VkDeviceMemory memory = VK_NULL_HANDLE;
 	};
 
-	struct GeometryData
+	COMPONENT(GeometryData)
 	{
 		unsigned int indexStart, indexCount, vertexStart;
 		inline bool operator < (const GeometryData a) const {
@@ -61,49 +61,52 @@ namespace DRAW
 		}
 	};
 
-	struct GPUInstance
+	COMPONENT(GPUInstance)
 	{
 		GW::MATH::GMATRIXF	transform;
 		H2B::ATTRIBUTES		matData;
 	};
 
-	struct VulkanGPUInstanceBuffer
+	COMPONENT(VulkanGPUInstanceBuffer)
 	{
 		unsigned long long element_count = 1;
 		std::vector<VkBuffer> buffer;
 		std::vector<VkDeviceMemory> memory;
 	};
 
-	struct SceneData
+	COMPONENT(SceneData)
 	{
 		GW::MATH::GVECTORF sunDirection, sunColor, sunAmbient, camPos;
 		GW::MATH::GMATRIXF viewMatrix, projectionMatrix;
 	};
 
-	struct VulkanUniformBuffer
+	COMPONENT(VulkanUniformBuffer)
 	{
 		std::vector<VkBuffer> buffer;
 		std::vector<VkDeviceMemory> memory;
 	};
 #pragma endregion
 
-	struct Camera
+	COMPONENT(Camera)
 	{
 		GW::MATH::GMATRIXF camMatrix;
 	};
 
-	struct CPULevel {
+	COMPONENT(CPULevel)
+	{
 		std::string jsonPath;
 		std::string modelFilePath;
 		Level_Data gameLevel;
 	};
 
-	struct MeshCollection {
+	COMPONENT(MeshCollection)
+	{
 		std::vector<entt::entity> entites;
 		GW::MATH::GOBBF collider;
 	};
 
-	struct ModelManager {
+	COMPONENT(ModelManager)
+	{
 		std::map<std::string, MeshCollection> models;
 	};
 

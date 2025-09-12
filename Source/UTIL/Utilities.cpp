@@ -1,5 +1,6 @@
 #include "Utilities.h"
 #include "../CCL.h"
+
 namespace UTIL
 {
 	void CreateModelEntity(entt::registry& registry, entt::entity entity, std::string _modelFromIni, GW::MATH::GMATRIXF* transform)

@@ -419,7 +419,7 @@ namespace DRAW
 		unsigned int currentBuffer;
 		vulkanRenderer.vlkSurface.GetSwapchainCurrentImage(currentBuffer);
 		vulkanRenderer.vlkSurface.GetCommandBuffer(currentBuffer, (void**)&commandBuffer);
-		
+
 		// Update UI
 		registry.patch<UI::UIData>(registry.group<UI::UIData>().front());
 		ImGui::Render();
@@ -485,7 +485,7 @@ namespace DRAW
 		}
 
 #pragma endregion
-		
+
 		ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), commandBuffer);
 		vulkanRenderer.vlkSurface.EndFrame(true);
 	}
@@ -496,6 +496,15 @@ namespace DRAW
 		auto& vulkanRenderer = registry.get<VulkanRenderer>(entity);
 		// wait till everything has completed
 		vkDeviceWaitIdle(vulkanRenderer.device);
+
+		// ImGui cleanup hates going to a different method
+		ImGui_ImplVulkan_DestroyFontsTexture();
+		ImGui_ImplWin32_Shutdown();
+		ImGui_ImplVulkan_Shutdown();
+		ImGui::DestroyContext();
+		UI::UIData& uiCtx = registry.get<UI::UIData>(registry.group<UI::UIData>().front());
+		vkDestroyDescriptorPool(vulkanRenderer.device, uiCtx.uiDescriptorPool, nullptr);
+
 		// Remove Buffer compontents
 		registry.remove<VulkanIndexBuffer>(entity);
 		registry.remove<VulkanVertexBuffer>(entity);

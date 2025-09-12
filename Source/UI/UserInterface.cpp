@@ -25,8 +25,9 @@ namespace UI
 		flags |= ImGuiWindowFlags_::ImGuiWindowFlags_MenuBar;
 		flags |= ImGuiWindowFlags_::ImGuiWindowFlags_NoBackground;
 
+		UI::UIData& uiData = registry.get<UI::UIData>(entity);
 		ImGui::SetNextWindowPos(ImVec2(0, 0));
-		ImGui::SetNextWindowSize(ImGui::GetIO().DisplaySize);
+		ImGui::SetNextWindowSize(ImVec2(uiData.io->DisplaySize.x * 0.5f, uiData.io->DisplaySize.y));
 
 		bool open = true;
 		if (ImGui::Begin("TEST", &open, flags))
@@ -35,43 +36,88 @@ namespace UI
 			{
 				if (ImGui::Button("Entites"))
 				{
-					registry.patch<UI::UI_ViewEntites>(entity);
+					uiData.state = (uiData.state != UI::MenuState::Entities) ? UI::MenuState::Entities : UI::MenuState::MenuBar;
 				}
 				if (ImGui::Button("Components"))
 				{
-					registry.emplace_or_replace<UI::UI_ViewComponents>(entity);
+					uiData.state = (uiData.state != UI::MenuState::Components) ? UI::MenuState::Components : UI::MenuState::MenuBar;
 				}
 				if (ImGui::Button("Console"))
 				{
-					registry.emplace_or_replace<UI::UI_ViewConsole>(entity);
+					uiData.state = (uiData.state != UI::MenuState::Console) ? UI::MenuState::Console : UI::MenuState::MenuBar;
 				}
-				
+
 				ImGui::EndMenuBar();
 			}
 			ImGui::End();
 		}
+
+		switch (uiData.state)
+		{
+		case UI::MenuState::Entities:
+		{
+			registry.patch<UI::UI_ViewEntites>(entity);
+		}
+		break;
+		case UI::MenuState::Components:
+		{
+			registry.patch<UI::UI_ViewComponents>(entity);
+		}
+		break;
+		case UI::MenuState::Console:
+		{
+			registry.patch<UI::UI_ViewConsole>(entity);
+		}
+		break;
+		default:
+			break;
+		}
+
 	}
 
 	void Update_UIViewEntitiesMenu(entt::registry& registry, entt::entity entity)
 	{
+		//std::cout << "Updating: Entities\n";
 
+		ImGuiWindowFlags flags = {};
+		flags |= ImGuiWindowFlags_::ImGuiWindowFlags_NoMove;
+		flags |= ImGuiWindowFlags_::ImGuiWindowFlags_NoResize;
+		flags |= ImGuiWindowFlags_::ImGuiWindowFlags_NoCollapse;
+		flags |= ImGuiWindowFlags_::ImGuiWindowFlags_NoBackground;
+
+		UI::UIData& uiData = registry.get<UI::UIData>(entity);
+		ImGui::SetNextWindowPos(ImVec2(0, uiData.io->DisplaySize.y * 0.025));
+
+		if (ImGui::Begin("Entities", 0, flags))
+		{
+			if (ImGui::BeginListBox("List", ImVec2(uiData.io->DisplaySize.x * 0.25f, uiData.io->DisplaySize.y * 0.9)))
+			{
+				for (auto entity : registry.view<entt::entity>())
+				{
+					std::string name = "Entity: " + std::to_string((ENTT_ID_TYPE)entity);
+					ImGui::Selectable(name.c_str(), false);
+				}
+				ImGui::EndListBox();
+			}
+		}
+		ImGui::End();
 	}
 
 	void Update_UIViewComponentsMenu(entt::registry& registry, entt::entity entity)
 	{
-
+		std::cout << "Updating: Components\n";
 	}
 
 	void Update_UIViewConsoleMenu(entt::registry& registry, entt::entity entity)
 	{
-
+		std::cout << "Updating: Console\n";
 	}
 
 	void Construct_UIContext(entt::registry& registry, entt::entity entity)
 	{
 		DRAW::VulkanRenderer& vlk = registry.get<DRAW::VulkanRenderer>(registry.group<DRAW::VulkanRenderer>().front());
 		GW::SYSTEM::GWindow& win = registry.get<GW::SYSTEM::GWindow>(registry.group<GW::SYSTEM::GWindow>().front());
-		UI::UIData& uiCtx = registry.get<UI::UIData>(entity);
+		UI::UIData& uiData = registry.get<UI::UIData>(entity);
 
 		unsigned int width = 0;
 		unsigned int height = 0;
@@ -110,16 +156,16 @@ namespace UI
 		pool_info.poolSizeCount = std::size(pool_sizes);
 		pool_info.pPoolSizes = pool_sizes;
 
-		vkCreateDescriptorPool(vlk.device, &pool_info, nullptr, &uiCtx.uiDescriptorPool);
+		vkCreateDescriptorPool(vlk.device, &pool_info, nullptr, &uiData.uiDescriptorPool);
 		// 2: initialize imgui library
 
 		//this initializes the core structures of imgui
 		IMGUI_CHECKVERSION();
 		ImGui::CreateContext();
-		ImGuiIO& io = ImGui::GetIO(); (void)io;
-		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
-		io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
-		io.DisplaySize = ImVec2(width, height);
+		uiData.io = &(ImGui::GetIO());
+		uiData.io->ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
+		uiData.io->ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
+		uiData.io->DisplaySize = ImVec2(width, height);
 
 		//this initializes imgui for SDL
 		GW::SYSTEM::UNIVERSAL_WINDOW_HANDLE hand;
@@ -142,7 +188,7 @@ namespace UI
 		initInfo.PhysicalDevice = vlk.physicalDevice;
 		initInfo.Device = vlk.device;
 		initInfo.Queue = (VkQueue)gfxQueue;
-		initInfo.DescriptorPool = uiCtx.uiDescriptorPool;
+		initInfo.DescriptorPool = uiData.uiDescriptorPool;
 		initInfo.MinImageCount = vlk.frameCount;
 		initInfo.ImageCount = vlk.frameCount;
 		initInfo.MSAASamples = VK_SAMPLE_COUNT_1_BIT;

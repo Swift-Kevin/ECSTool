@@ -14,13 +14,13 @@ namespace UI
 	};
 
 	/* Tags */
-	struct UI_MenuBar {};
-	struct UI_ViewEntites {};
-	struct UI_ViewComponents {};
-	struct UI_ViewConsole {};
+	COMPONENT(UI_MenuBar) {};
+	COMPONENT(UI_ViewEntites) {};
+	COMPONENT(UI_ViewComponents) {};
+	COMPONENT(UI_ViewConsole) {};
 
 	/* Components */
-	struct UIData
+	COMPONENT(UIData)
 	{
 		VkDescriptorPool uiDescriptorPool;
 		MenuState state = MenuState::MenuBar;

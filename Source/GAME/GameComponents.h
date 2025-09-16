@@ -14,11 +14,12 @@ namespace GAME
 	///*** Components ***///
 	COMPONENT(Transform)
 	{
+		Transform* parent = nullptr;
 		GW::MATH::GMATRIXF transform;
 		GW::MATH::GVECTORF& Position() { return transform.row4; };
 	};
 
-	COMPONENT(Velocity) 
+	COMPONENT(Velocity)
 	{
 		GW::MATH::GVECTORF velocity;
 	};

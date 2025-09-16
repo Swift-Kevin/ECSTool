@@ -84,7 +84,7 @@ namespace BEHAVIORS
 	/// <param name="registry">holds all ECS info</param>
 	void UIBehavior(entt::registry& registry)
 	{
-		auto uiEntity = registry.create();		
+		auto uiEntity = registry.create();
 		UI::UIData& uiComp = registry.emplace<UI::UIData>(uiEntity);
 	}
 
@@ -106,7 +106,7 @@ namespace BEHAVIORS
 			GW::MATH::GMatrix::TranslateGlobalF(startingTransform, pos, startingTransform);
 			GW::MATH::GMatrix::RotateYLocalF(startingTransform, G_DEGREE_TO_RADIAN_F(-60), startingTransform);
 			GW::MATH::GMatrix::RotateXLocalF(startingTransform, G_DEGREE_TO_RADIAN_F(15), startingTransform);
-			registry.emplace<GAME::Transform>(playerEntity, startingTransform);
+			registry.emplace<GAME::Transform>(playerEntity, GAME::Transform{ nullptr, startingTransform });
 		}
 
 		// Spawn the planets

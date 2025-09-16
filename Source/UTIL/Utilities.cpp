@@ -3,7 +3,7 @@
 
 namespace UTIL
 {
-	void CreateModelEntity(entt::registry& registry, entt::entity entity, std::string _modelFromIni, GW::MATH::GMATRIXF* transform)
+	void CreateModelEntity(entt::registry& registry, entt::entity entity, std::string _modelFromIni, GAME::Transform* transform)
 	{
 		std::shared_ptr<const GameConfig> config = registry.ctx().get<UTIL::Config>().gameConfig;
 
@@ -13,11 +13,14 @@ namespace UTIL
 		auto& modelsMeshs = registry.ctx().get<DRAW::ModelManager>().models[modelName].entites;
 
 		// Use overriden transform if passed
-		if (transform) {
+		if (transform)
+		{
 			registry.emplace<GAME::Transform>(entity, *transform);
 		}
-		else {
-			registry.emplace<GAME::Transform>(entity, registry.get<DRAW::GPUInstance>(modelsMeshs[0]).transform);
+		else
+		{
+
+			registry.emplace<GAME::Transform>(entity, GAME::Transform{ nullptr, registry.get<DRAW::GPUInstance>(modelsMeshs[0]).transform });
 		}
 
 		for (entt::entity ent : modelsMeshs)
@@ -28,7 +31,7 @@ namespace UTIL
 
 			// Fix transform if overridden
 			DRAW::GPUInstance copyGPU = registry.get<DRAW::GPUInstance>(ent);
-			copyGPU.transform = transform ? *transform : copyGPU.transform = registry.get<DRAW::GPUInstance>(ent).transform;
+			copyGPU.transform = transform ? transform->transform : registry.get<DRAW::GPUInstance>(ent).transform;
 
 			registry.emplace<DRAW::GPUInstance>(copyEntity, copyGPU);
 			registry.emplace<DRAW::GeometryData>(copyEntity, registry.get<DRAW::GeometryData>(ent));

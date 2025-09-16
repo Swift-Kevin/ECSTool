@@ -90,7 +90,7 @@ namespace UI
 
 		if (ImGui::Begin("Entities", 0, flags))
 		{
-			if (ImGui::BeginListBox("", ImVec2(uiData.io->DisplaySize.x * 0.25f, uiData.io->DisplaySize.y * 0.9)))
+			if (ImGui::BeginListBox("##", ImVec2(uiData.io->DisplaySize.x * 0.25f, uiData.io->DisplaySize.y * 0.9)))
 			{
 				for (auto entity : registry.view<entt::entity>())
 				{
@@ -117,7 +117,7 @@ namespace UI
 
 		if (ImGui::Begin("Components", 0, flags))
 		{
-			if (ImGui::BeginListBox("", ImVec2(uiData.io->DisplaySize.x * 0.25f, uiData.io->DisplaySize.y * 0.9)))
+			if (ImGui::BeginListBox("##", ImVec2(uiData.io->DisplaySize.x * 0.25f, uiData.io->DisplaySize.y * 0.9)))
 			{
 				auto& map = RegisteredComponents();
 				for (auto [compName, compIdx] : map)

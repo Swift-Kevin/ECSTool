@@ -46,6 +46,10 @@ namespace UI
 				{
 					uiData.state = (uiData.state != UI::MenuState::Console) ? UI::MenuState::Console : UI::MenuState::MenuBar;
 				}
+				if (ImGui::Button("Test"))
+				{
+
+				}
 
 				ImGui::EndMenuBar();
 			}
@@ -67,6 +71,11 @@ namespace UI
 		case UI::MenuState::Console:
 		{
 			registry.patch<UI::UI_ViewConsole>(entity);
+		}
+		break;
+		case UI::MenuState::TEST:
+		{
+			
 		}
 		break;
 		default:

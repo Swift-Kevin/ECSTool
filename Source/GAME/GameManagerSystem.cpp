@@ -13,14 +13,92 @@ namespace GAME
 		for (const entt::entity& entity : allEntities)
 		{
 			// can use view for accessing the transform
-			GW::MATH::GMATRIXF& currTransform = registry.get<Transform>(entity).transform;
+			GAME::Transform& currTransform = registry.get<Transform>(entity);
 			auto& currentMeshs = registry.get<DRAW::MeshCollection>(entity).entites;
 
 			for (auto& mesh : currentMeshs)
 			{
 				// copy over transform to gpu instance
-				registry.get<DRAW::GPUInstance>(mesh).transform = currTransform;
+				registry.get<DRAW::GPUInstance>(mesh).transform = currTransform.world;
 			}
+		}
+	}
+
+	void UpdateWorldTransforms(entt::registry& registry)
+	{
+		auto view = registry.view<Transform>();
+
+		for (auto entity : view)
+		{
+			auto& tf = registry.get<Transform>(entity);
+
+			if (registry.all_of<ParentTransform>(entity))
+			{
+				auto& parentComp = registry.get<ParentTransform>(entity);
+				if (parentComp.parent != entt::null && registry.all_of<Transform>(parentComp.parent))
+				{
+					auto& parentTf = registry.get<Transform>(parentComp.parent);
+					GW::MATH::GMatrix::MultiplyMatrixF(tf.local, parentTf.world, tf.world);
+				}
+				else
+				{
+					tf.world = tf.local;
+				}
+			}
+			else
+			{
+				tf.world = tf.local;
+			}
+		}
+	}
+
+	void UpdateOrbits(entt::registry& registry)
+	{
+		auto orbiters = registry.view<Transform, Orbit>();
+		auto& deltaTime = registry.ctx().get<UTIL::DeltaTime>().dtSec;
+
+		for (auto entity : orbiters)
+		{
+			auto& orbit = registry.get<Orbit>(entity);
+
+			if (orbit.parent == entt::null || !registry.all_of<Transform>(orbit.parent))
+			{
+				continue;
+			}
+
+			auto& parentTransform = registry.get<Transform>(orbit.parent);
+			auto& transform = registry.get<Transform>(entity);
+			orbit.currentAngle += orbit.angularSpeed * deltaTime;
+
+			GW::MATH::GMATRIXF rotation = GW::MATH::GIdentityMatrixF;
+			switch (orbit.axis)
+			{
+			case GAME::ORBIT_AXIS::X:
+			{
+				GW::MATH::GMatrix::RotateXLocalF(rotation, orbit.currentAngle, rotation);
+				break;
+			}
+			case GAME::ORBIT_AXIS::Y:
+			{
+				GW::MATH::GMatrix::RotateYLocalF(rotation, orbit.currentAngle, rotation);
+				break;
+			}
+			case GAME::ORBIT_AXIS::Z:
+			{
+				GW::MATH::GMatrix::RotateZLocalF(rotation, orbit.currentAngle, rotation);
+				break;
+			}
+			default:
+				break;
+			}
+
+			GW::MATH::GVECTORF offset = { orbit.radius, 0, 0, 1 };
+			GW::MATH::GMatrix::VectorXMatrixF(rotation, offset, offset);
+			
+			transform.local.row4 = offset; // local offset from parent/center
+			transform.local.row4 = offset;
+			transform.world = transform.local;
+			GW::MATH::GMatrix::MultiplyMatrixF(transform.local, parentTransform.world, transform.world);
 		}
 	}
 
@@ -34,7 +112,7 @@ namespace GAME
 		for (const entt::entity& entity : allEntities)
 		{
 			// add velocity to position
-			auto& pos = registry.get<Transform>(entity).transform.row4;
+			auto& pos = registry.get<Transform>(entity).local.row4;
 			auto velocity = registry.get<Velocity>(entity).velocity;
 
 			GW::MATH::GVector::ScaleF(velocity, deltaTime, velocity);
@@ -52,6 +130,8 @@ namespace GAME
 
 		// Update Velocities and Transforms
 		UpdateEntityVelocities(registry);
+		UpdateOrbits(registry);
+		UpdateWorldTransforms(registry);
 		UpdateMeshTransforms(registry);
 	}
 

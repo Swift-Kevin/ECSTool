@@ -5,6 +5,14 @@
 
 namespace GAME
 {
+	enum class ORBIT_AXIS : byte
+	{
+		X,
+		Y,
+		Z,
+		DEFAULT = Y,
+	};
+
 	///*** Tags ***///
 	COMPONENT(Player) {};
 	COMPONENT(Obstacle) {};
@@ -14,9 +22,23 @@ namespace GAME
 	///*** Components ***///
 	COMPONENT(Transform)
 	{
-		Transform* parent = nullptr;
-		GW::MATH::GMATRIXF transform;
-		GW::MATH::GVECTORF& Position() { return transform.row4; };
+		GW::MATH::GMATRIXF local = GW::MATH::GIdentityMatrixF;
+		GW::MATH::GMATRIXF world = GW::MATH::GIdentityMatrixF;
+	};
+
+	COMPONENT(ParentTransform)
+	{
+		entt::entity parent = entt::null;
+	};
+
+	COMPONENT(Orbit)
+	{
+		entt::entity parent = entt::null;
+		ORBIT_AXIS axis = ORBIT_AXIS::Y;
+		float radius = 1.0f;
+		float angularSpeed = 1.0f;
+		float currentAngle = 0.0f;
+
 	};
 
 	COMPONENT(Velocity)

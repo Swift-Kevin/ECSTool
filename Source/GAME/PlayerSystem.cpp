@@ -59,13 +59,13 @@ namespace GAME
 	{
 		// Translate Locally on X and Z
 		GW::MATH::GVECTORF deltaPos = { inputStates.x, 0, inputStates.y, 1 };
-		GW::MATH::GMATRIXF& playerTransform = registry.get<Transform>(entity).transform;
+		GW::MATH::GMATRIXF& playerTransform = registry.get<Transform>(entity).local;
 		GW::MATH::GMatrix::TranslateLocalF(playerTransform, deltaPos, playerTransform);
 	}
 
 	void UpdatePlayerLooking(entt::registry& registry, entt::entity entity, GW::MATH::GVECTORF inputStates)
 	{
-		GW::MATH::GMATRIXF& playerTransform = registry.get<Transform>(entity).transform;
+		GW::MATH::GMATRIXF& playerTransform = registry.get<Transform>(entity).local;
 
 		// Pitch
 		GW::MATH::GMATRIXF pitchMatrix = GW::MATH::GIdentityMatrixF;
@@ -94,7 +94,7 @@ namespace GAME
 		UpdatePlayerPosition(registry, entity, input);
 		UpdatePlayerLooking(registry, entity, input);
 
-		GW::MATH::GMATRIXF& playerTransform = registry.get<Transform>(entity).transform;
+		GW::MATH::GMATRIXF& playerTransform = registry.get<Transform>(entity).local;
 		auto& camera = registry.get<DRAW::Camera>(registry.view<DRAW::Camera>().front());
 		camera.camMatrix = playerTransform;
 	}

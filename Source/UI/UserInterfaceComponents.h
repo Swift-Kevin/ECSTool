@@ -10,7 +10,8 @@ namespace UI
 		MenuBar,
 		Entities,
 		Components,
-		Console
+		Console,
+		TEST
 	};
 
 	/* Tags */

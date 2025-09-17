@@ -37,16 +37,7 @@ namespace UTIL
 	GW::MATH::GMATRIXF GetRandomTransform(GW::MATH::GVECTORF min, GW::MATH::GVECTORF max);
 
 	float GetRandomRange(float min = 0, float max = 0);
-
 	void PrintVector(GW::MATH::GVECTORF toPrint);
 
-	static void check_vk_result(VkResult err)
-	{
-		if (err == 0)
-			return;
-		fprintf(stderr, "[vulkan] Error: VkResult = %d\n", err);
-		if (err < 0)
-			abort();
-	}
 } // namespace UTIL
 #endif // !UTILITIES_H_

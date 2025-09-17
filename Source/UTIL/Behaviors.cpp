@@ -106,7 +106,10 @@ namespace BEHAVIORS
 			GW::MATH::GMatrix::TranslateGlobalF(startingTransform, pos, startingTransform);
 			GW::MATH::GMatrix::RotateYLocalF(startingTransform, G_DEGREE_TO_RADIAN_F(-60), startingTransform);
 			GW::MATH::GMatrix::RotateXLocalF(startingTransform, G_DEGREE_TO_RADIAN_F(15), startingTransform);
-			registry.emplace<GAME::Transform>(playerEntity, GAME::Transform{ nullptr, startingTransform });
+
+			GAME::Transform trans = {};
+			trans.local = startingTransform;
+			registry.emplace<GAME::Transform>(playerEntity, trans);
 		}
 
 		// Spawn the planets
@@ -129,6 +132,27 @@ namespace BEHAVIORS
 			UTIL::CreateModelEntity(registry, uranusEntity, "Uranus");
 			auto neptuneEntity = registry.create();
 			UTIL::CreateModelEntity(registry, neptuneEntity, "Neptune");
+			auto moonEntity = registry.create();
+			UTIL::CreateModelEntity(registry, moonEntity, "Moon");
+
+			// Setup moon for orbit
+			{
+				auto& moonTf = registry.get<GAME::Transform>(moonEntity);
+				auto& earthTf = registry.get<GAME::Transform>(earthEntity);
+				GW::MATH::GVECTORF offset;
+				GW::MATH::GVector::SubtractVectorF(moonTf.local.row4, earthTf.world.row4, offset);
+				moonTf.local = GW::MATH::GIdentityMatrixF;
+				moonTf.local.row4 = offset;
+
+				GAME::Orbit moonOrbit = {};
+				moonOrbit.parent = earthEntity;
+				moonOrbit.radius = 2.0f;
+				moonOrbit.angularSpeed = G_DEGREE_TO_RADIAN_F(50.0f);
+				moonOrbit.axis = GAME::ORBIT_AXIS::Y;
+				moonOrbit.currentAngle = 0.0f;
+
+				registry.emplace<GAME::Orbit>(moonEntity, moonOrbit);
+			}
 		}
 
 		// Create Gameplay Entity to manage all gameplay systems

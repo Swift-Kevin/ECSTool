@@ -11,17 +11,22 @@ namespace UTIL
 	static const std::string PlayerName = "Player";
 	static const std::string Projectile1Name = "Bullet";
 
-	struct Config
+	COMPONENT(DebugInfo)
+	{
+		std::string name = "";
+	};
+
+	COMPONENT(Config)
 	{
 		std::shared_ptr<GameConfig> gameConfig = std::make_shared<GameConfig>();
 	};
 
-	struct DeltaTime
+	COMPONENT(DeltaTime)
 	{
 		double dtSec;
 	};
 
-	struct Input
+	COMPONENT(Input)
 	{
 		GW::INPUT::GController gamePads; // controller support
 		GW::INPUT::GInput immediateInput; // twitch keybaord/mouse

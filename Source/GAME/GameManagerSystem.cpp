@@ -8,48 +8,25 @@ namespace GAME
 {
 	void UpdateMeshTransforms(entt::registry& registry)
 	{
-		auto& allEntities = registry.view<Transform, DRAW::MeshCollection>();
+		auto& drawables = registry.view<Transform, DRAW::MeshCollection>();
 
-		for (const entt::entity& entity : allEntities)
+		for (const entt::entity& entity : drawables)
 		{
-			// can use view for accessing the transform
 			GAME::Transform& currTransform = registry.get<Transform>(entity);
-			auto& currentMeshs = registry.get<DRAW::MeshCollection>(entity).entites;
+			auto& entities = registry.get<DRAW::MeshCollection>(entity).entites;
 
-			for (auto& mesh : currentMeshs)
+			for (auto& entity : entities)
 			{
 				// copy over transform to gpu instance
-				registry.get<DRAW::GPUInstance>(mesh).transform = currTransform.world;
+				// gpu instance is what is actually drawn
+				registry.get<DRAW::GPUInstance>(entity).transform = currTransform.world;
 			}
 		}
 	}
 
 	void UpdateWorldTransforms(entt::registry& registry)
 	{
-		auto view = registry.view<Transform>();
-
-		for (auto entity : view)
-		{
-			auto& tf = registry.get<Transform>(entity);
-
-			if (registry.all_of<ParentTransform>(entity))
-			{
-				auto& parentComp = registry.get<ParentTransform>(entity);
-				if (parentComp.parent != entt::null && registry.all_of<Transform>(parentComp.parent))
-				{
-					auto& parentTf = registry.get<Transform>(parentComp.parent);
-					GW::MATH::GMatrix::MultiplyMatrixF(tf.local, parentTf.world, tf.world);
-				}
-				else
-				{
-					tf.world = tf.local;
-				}
-			}
-			else
-			{
-				tf.world = tf.local;
-			}
-		}
+		// Going to Update this to be better
 	}
 
 	void UpdateOrbits(entt::registry& registry)
@@ -68,37 +45,10 @@ namespace GAME
 
 			auto& parentTransform = registry.get<Transform>(orbit.parent);
 			auto& transform = registry.get<Transform>(entity);
-			orbit.currentAngle += orbit.angularSpeed * deltaTime;
+			orbit.currentAngle = orbit.angularSpeed * deltaTime;
 
-			GW::MATH::GMATRIXF rotation = GW::MATH::GIdentityMatrixF;
-			switch (orbit.axis)
-			{
-			case GAME::ORBIT_AXIS::X:
-			{
-				GW::MATH::GMatrix::RotateXLocalF(rotation, orbit.currentAngle, rotation);
-				break;
-			}
-			case GAME::ORBIT_AXIS::Y:
-			{
-				GW::MATH::GMatrix::RotateYLocalF(rotation, orbit.currentAngle, rotation);
-				break;
-			}
-			case GAME::ORBIT_AXIS::Z:
-			{
-				GW::MATH::GMatrix::RotateZLocalF(rotation, orbit.currentAngle, rotation);
-				break;
-			}
-			default:
-				break;
-			}
+			GW::MATH::GMatrix::RotateYLocalF(transform.world, orbit.currentAngle, transform.world);
 
-			GW::MATH::GVECTORF offset = { orbit.radius, 0, 0, 1 };
-			GW::MATH::GMatrix::VectorXMatrixF(rotation, offset, offset);
-			
-			transform.local.row4 = offset; // local offset from parent/center
-			transform.local.row4 = offset;
-			transform.world = transform.local;
-			GW::MATH::GMatrix::MultiplyMatrixF(transform.local, parentTransform.world, transform.world);
 		}
 	}
 

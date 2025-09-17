@@ -20,7 +20,7 @@ namespace UTIL
 		else
 		{
 			GAME::Transform trans = {};
-			trans.local = registry.get<DRAW::GPUInstance>(modelsMeshs[0]).transform;
+			trans.world = registry.get<DRAW::GPUInstance>(modelsMeshs[0]).transform;
 			registry.emplace<GAME::Transform>(entity, trans);
 		}
 
@@ -32,7 +32,7 @@ namespace UTIL
 
 			// Fix transform if overridden
 			DRAW::GPUInstance copyGPU = registry.get<DRAW::GPUInstance>(ent);
-			copyGPU.transform = transform ? transform->local : registry.get<DRAW::GPUInstance>(ent).transform;
+			copyGPU.transform = transform ? transform->world : registry.get<DRAW::GPUInstance>(ent).transform;
 
 			registry.emplace<DRAW::GPUInstance>(copyEntity, copyGPU);
 			registry.emplace<DRAW::GeometryData>(copyEntity, registry.get<DRAW::GeometryData>(ent));

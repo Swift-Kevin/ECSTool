@@ -10,7 +10,6 @@ namespace GAME
 		X,
 		Y,
 		Z,
-		DEFAULT = Y,
 	};
 
 	///*** Tags ***///
@@ -38,7 +37,6 @@ namespace GAME
 		float radius = 1.0f;
 		float angularSpeed = 1.0f;
 		float currentAngle = 0.0f;
-
 	};
 
 	COMPONENT(Velocity)

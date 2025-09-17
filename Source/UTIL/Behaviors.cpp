@@ -140,9 +140,10 @@ namespace BEHAVIORS
 				auto& moonTf = registry.get<GAME::Transform>(moonEntity);
 				auto& earthTf = registry.get<GAME::Transform>(earthEntity);
 				GW::MATH::GVECTORF offset;
-				GW::MATH::GVector::SubtractVectorF(moonTf.local.row4, earthTf.world.row4, offset);
+				GW::MATH::GVector::SubtractVectorF(moonTf.local.row4, earthTf.local.row4, offset);
 				moonTf.local = GW::MATH::GIdentityMatrixF;
 				moonTf.local.row4 = offset;
+				registry.emplace<GAME::ParentTransform>(moonEntity, earthEntity );
 
 				GAME::Orbit moonOrbit = {};
 				moonOrbit.parent = earthEntity;

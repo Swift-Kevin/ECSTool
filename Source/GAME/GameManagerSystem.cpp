@@ -31,11 +31,13 @@ namespace GAME
 
 		for (auto entity : transforms)
 		{
-			auto& transform = registry.get<Transform>(entity);
-			entt::entity parent = registry.get<Orbit>(entity).parent;
-			auto& parentTransform = registry.get<Transform>(parent);
+			auto& child = registry.get<Transform>(entity);
+			entt::entity parentEntt = registry.get<Orbit>(entity).parent;
+			auto parent = registry.get<Transform>(parentEntt);
+			auto orbit = registry.get<Orbit>(entity);
 
-			GW::MATH::GMatrix::MultiplyMatrixF(parentTransform.world, transform.local, transform.world);
+			GW::MATH::GMatrix::RotateYGlobalF(parent.world, orbit.currentAngle, parent.world);
+			GW::MATH::GMatrix::MultiplyMatrixF(child.local, parent.world, child.world);
 		}
 	}
 
@@ -53,12 +55,7 @@ namespace GAME
 				continue;
 			}
 
-			auto& parentTransform = registry.get<Transform>(orbit.parent);
-			auto& transform = registry.get<Transform>(entity);
-			orbit.currentAngle = orbit.angularSpeed * deltaTime;
-
-			GW::MATH::GMatrix::RotateYLocalF(transform.local, orbit.currentAngle, transform.local);
-
+			orbit.currentAngle += orbit.angularSpeed * deltaTime;
 		}
 	}
 

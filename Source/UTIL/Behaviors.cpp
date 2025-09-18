@@ -144,7 +144,19 @@ namespace BEHAVIORS
 				// Compute Child Local
 				GW::MATH::GMATRIXF parentInverse = GW::MATH::GIdentityMatrixF;
 				GW::MATH::GMatrix::InverseF(parent.world, parentInverse);
-				GW::MATH::GMatrix::MultiplyMatrixF(parentInverse, child.world, child.local);
+				GW::MATH::GMatrix::MultiplyMatrixF(child.world, parentInverse, child.local);
+
+				// std::cout << "Child World before: ";
+				// UTIL::PrintVector(child.world.row1);
+				// UTIL::PrintVector(child.world.row2);
+				// UTIL::PrintVector(child.world.row3);
+				// UTIL::PrintVector(child.world.row4);
+				// GW::MATH::GMatrix::MultiplyMatrixF(child.local, parent.world, child.world);
+				// std::cout << "Child World after: ";
+				// UTIL::PrintVector(child.world.row1);
+				// UTIL::PrintVector(child.world.row2);
+				// UTIL::PrintVector(child.world.row3);
+				// UTIL::PrintVector(child.world.row4);
 
 				UTIL::CreateOrbiter(registry, moonEntity, earthEntity);
 			}

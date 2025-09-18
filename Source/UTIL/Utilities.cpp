@@ -21,6 +21,14 @@ namespace UTIL
 		{
 			GAME::Transform trans = {};
 			trans.world = registry.get<DRAW::GPUInstance>(modelsMeshs[0]).transform;
+			GW::MATH::GVECTORF pos = { 0, 0, 0, 1 };
+			pos.x = config.get()->at(_modelFromIni).at("posX").as<float>();
+			pos.y = config.get()->at(_modelFromIni).at("posY").as<float>();
+			pos.z = config.get()->at(_modelFromIni).at("posZ").as<float>();
+			float s = config.get()->at(_modelFromIni).at("scale").as<float>();
+			GW::MATH::GVECTORF scale = { s, s, s, 1 };
+			GW::MATH::GMatrix::ScaleLocalF(trans.world, scale, trans.world);
+			trans.world.row4 = pos;
 			registry.emplace<GAME::Transform>(entity, trans);
 		}
 
@@ -94,7 +102,7 @@ namespace UTIL
 	{
 		GAME::Orbit moonOrbit = {};
 		moonOrbit.parent = orbiting;
-		moonOrbit.angularSpeed = G_DEGREE_TO_RADIAN_F(1000.0f);
+		moonOrbit.angularSpeed = G_DEGREE_TO_RADIAN_F(500.0f);
 		moonOrbit.axis = GAME::ORBIT_AXIS::Y;
 		moonOrbit.currentAngle = 0.0f;
 

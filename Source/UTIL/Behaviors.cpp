@@ -137,27 +137,16 @@ namespace BEHAVIORS
 
 			// Setup moon for orbit
 			{
-				auto& moonTransform = registry.get<GAME::Transform>(moonEntity);
-				auto& earthTransform = registry.get<GAME::Transform>(earthEntity);
+				auto& child = registry.get<GAME::Transform>(moonEntity);
+				auto& parent = registry.get<GAME::Transform>(earthEntity);
 				registry.emplace<GAME::ParentTransform>(moonEntity, earthEntity);
 
-				/*
-					Matrix4 parentInverse = Inverse(parentWorld);
-					Matrix4 childLocal = parentInverse * childWorld;
-				*/
-
+				// Compute Child Local
 				GW::MATH::GMATRIXF parentInverse = GW::MATH::GIdentityMatrixF;
-				GW::MATH::GMatrix::InverseF(earthTransform.world, parentInverse);
-				GW::MATH::GMatrix::MultiplyMatrixF(parentInverse, moonTransform.world, moonTransform.local);
+				GW::MATH::GMatrix::InverseF(parent.world, parentInverse);
+				GW::MATH::GMatrix::MultiplyMatrixF(parentInverse, child.world, child.local);
 
-				GAME::Orbit moonOrbit = {};
-				moonOrbit.parent = earthEntity;
-				moonOrbit.radius = 2.0f;
-				moonOrbit.angularSpeed = G_DEGREE_TO_RADIAN_F(50.0f);
-				moonOrbit.axis = GAME::ORBIT_AXIS::Y;
-				moonOrbit.currentAngle = 0.0f;
-
-				registry.emplace<GAME::Orbit>(moonEntity, moonOrbit);
+				UTIL::CreateOrbiter(registry, moonEntity, earthEntity);
 			}
 		}
 

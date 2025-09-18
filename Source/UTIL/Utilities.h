@@ -43,6 +43,7 @@ namespace UTIL
 
 	float GetRandomRange(float min = 0, float max = 0);
 	void PrintVector(GW::MATH::GVECTORF toPrint);
+	void CreateOrbiter(entt::registry& registry, entt::entity orbiter, entt::entity orbiting);
 
 } // namespace UTIL
 #endif // !UTILITIES_H_

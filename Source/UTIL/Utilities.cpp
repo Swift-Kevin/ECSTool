@@ -90,4 +90,15 @@ namespace UTIL
 		std::cout << "Vector: {" << toPrint.x << ", " << toPrint.y << ", " << toPrint.z << ", " << toPrint.w << "}\n";
 	}
 
+	void CreateOrbiter(entt::registry& registry, entt::entity orbiter, entt::entity orbiting)
+	{
+		GAME::Orbit moonOrbit = {};
+		moonOrbit.parent = orbiting;
+		moonOrbit.angularSpeed = G_DEGREE_TO_RADIAN_F(1000.0f);
+		moonOrbit.axis = GAME::ORBIT_AXIS::Y;
+		moonOrbit.currentAngle = 0.0f;
+
+		registry.emplace<GAME::Orbit>(orbiter, moonOrbit);
+	}
+
 } // namespace UTIL

@@ -27,6 +27,16 @@ namespace GAME
 	void UpdateWorldTransforms(entt::registry& registry)
 	{
 		// Going to Update this to be better
+		auto transforms = registry.view<Transform, ParentTransform>();
+
+		for (auto entity : transforms)
+		{
+			auto& transform = registry.get<Transform>(entity);
+			entt::entity parent = registry.get<Orbit>(entity).parent;
+			auto& parentTransform = registry.get<Transform>(parent);
+
+			GW::MATH::GMatrix::MultiplyMatrixF(parentTransform.world, transform.local, transform.world);
+		}
 	}
 
 	void UpdateOrbits(entt::registry& registry)
@@ -47,7 +57,7 @@ namespace GAME
 			auto& transform = registry.get<Transform>(entity);
 			orbit.currentAngle = orbit.angularSpeed * deltaTime;
 
-			GW::MATH::GMatrix::RotateYLocalF(transform.world, orbit.currentAngle, transform.world);
+			GW::MATH::GMatrix::RotateYLocalF(transform.local, orbit.currentAngle, transform.local);
 
 		}
 	}

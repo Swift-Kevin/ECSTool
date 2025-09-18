@@ -34,7 +34,6 @@ namespace GAME
 	{
 		entt::entity parent = entt::null;
 		ORBIT_AXIS axis = ORBIT_AXIS::Y;
-		float radius = 1.0f;
 		float angularSpeed = 1.0f;
 		float currentAngle = 0.0f;
 	};

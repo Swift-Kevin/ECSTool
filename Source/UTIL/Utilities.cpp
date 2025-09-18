@@ -1,6 +1,5 @@
 #include "Utilities.h"
 #include "../CCL.h"
-#include "../GAME/Hierarchy.h"
 
 namespace UTIL
 {
@@ -20,18 +19,9 @@ namespace UTIL
 		}
 		else
 		{
-			GAME::Transform transform = {};
-			transform.world = registry.get<DRAW::GPUInstance>(modelsMeshs[0]).transform;
-			GW::MATH::GVECTORF pos = { 0, 0, 0, 1};
-			pos.x = config.get()->at(_modelFromIni).at("posX").as<float>();
-			pos.y = config.get()->at(_modelFromIni).at("posY").as<float>();
-			pos.z = config.get()->at(_modelFromIni).at("posZ").as<float>();
-			float s = config.get()->at(_modelFromIni).at("scale").as<float>();
-			GW::MATH::GVECTORF scale = { s, s, s, 1 };
-			GW::MATH::GMatrix::ScaleLocalF(transform.world, scale, transform.world);
-			transform.world.row4 = pos;
-
-			registry.emplace<GAME::Transform>(entity, transform);
+			GAME::Transform trans = {};
+			trans.world = registry.get<DRAW::GPUInstance>(modelsMeshs[0]).transform;
+			registry.emplace<GAME::Transform>(entity, trans);
 		}
 
 		for (entt::entity ent : modelsMeshs)
@@ -56,16 +46,6 @@ namespace UTIL
 		// Inverse so it can be manipulated easier
 		GW::MATH::GMatrix::InverseF(initialCamera, initialCamera);
 		registry.emplace<DRAW::Camera>(entity, DRAW::Camera{ initialCamera });
-	}
-
-	void CreateOrbiter(entt::registry& registry, entt::entity orbiter, entt::entity orbiting, GW::MATH::GVECTORF orbitDistance)
-	{
-		GAME::Orbit orbit = {};
-		orbit.parent = orbiting;
-		orbit.angularSpeed = G_DEGREE_TO_RADIAN_F(1000.0f);
-		orbit.axis = GAME::ORBIT_AXIS::Y;
-
-		registry.emplace<GAME::Orbit>(orbiter, orbit);
 	}
 
 	GW::MATH::GVECTORF GetRandomVelocityVector()

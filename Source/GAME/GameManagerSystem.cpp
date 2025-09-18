@@ -3,10 +3,11 @@
 
 #include "../DRAW/DrawComponents.h"
 #include "../UTIL/Utilities.h"
+#include "Hierarchy.h"
 
 namespace GAME
 {
-	void UpdateMeshTransforms(entt::registry& registry)
+	void UpdateGPUTransforms(entt::registry& registry)
 	{
 		auto& drawables = registry.view<Transform, DRAW::MeshCollection>();
 
@@ -26,30 +27,41 @@ namespace GAME
 
 	void UpdateWorldTransforms(entt::registry& registry)
 	{
-		// Going to Update this to be better
+		auto& entities = registry.view<Transform, ParentTransform>();
+
+		for (auto entity : entities)
+		{
+			auto& transform = registry.get<Transform>(entity);
+			entt::entity parent = registry.get<Orbit>(entity).parent;
+			auto& parentTransform = registry.get<Transform>(parent);
+
+			GW::MATH::GMatrix::MultiplyMatrixF(transform.local, parentTransform.world, transform.world);
+		}
 	}
 
 	void UpdateOrbits(entt::registry& registry)
 	{
-		auto orbiters = registry.view<Transform, Orbit>();
 		auto& deltaTime = registry.ctx().get<UTIL::DeltaTime>().dtSec;
 
-		for (auto entity : orbiters)
+		for (auto [entity, orbit, transform] : registry.view<Orbit, Transform>().each())
 		{
-			auto& orbit = registry.get<Orbit>(entity);
-
-			if (orbit.parent == entt::null || !registry.all_of<Transform>(orbit.parent))
-			{
-				continue;
-			}
-
-			auto& parentTransform = registry.get<Transform>(orbit.parent);
-			auto& transform = registry.get<Transform>(entity);
 			orbit.currentAngle = orbit.angularSpeed * deltaTime;
 
-			GW::MATH::GMatrix::RotateYLocalF(transform.world, orbit.currentAngle, transform.world);
+			auto& parentTransform = registry.get<Transform>(orbit.parent);
+			auto& childTransform = registry.get<Transform>(entity);
 
+			// get local matrix?
+			GW::MATH::GMATRIXF parentInv;
+			GW::MATH::GMatrix::InverseF(parentTransform.world, parentInv);
+			GW::MATH::GMatrix::MultiplyMatrixF(childTransform.world, parentInv, childTransform.local);
+
+			// calculate local
+			std::cout << "Local "; UTIL::PrintVector(childTransform.local.row4);
+			std::cout << "Global "; UTIL::PrintVector(childTransform.world.row4);
+			GW::MATH::GMatrix::RotateYGlobalF(childTransform.local, orbit.currentAngle, childTransform.local);
+			GW::MATH::GMatrix::MultiplyMatrixF(parentTransform.world, childTransform.local, childTransform.world);
 		}
+
 	}
 
 	void UpdateEntityVelocities(entt::registry& registry)
@@ -82,7 +94,7 @@ namespace GAME
 		UpdateEntityVelocities(registry);
 		UpdateOrbits(registry);
 		UpdateWorldTransforms(registry);
-		UpdateMeshTransforms(registry);
+		UpdateGPUTransforms(registry);
 	}
 
 	CONNECT_COMPONENT_LOGIC() {

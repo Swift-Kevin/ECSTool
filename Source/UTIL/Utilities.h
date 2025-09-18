@@ -36,6 +36,7 @@ namespace UTIL
 	/// Method declarations
 	void CreateModelEntity(entt::registry& registry, entt::entity entity, std::string entityName, GAME::Transform* _transform = nullptr);
 	void SetupCamera(entt::registry& registry, entt::entity entity);
+	void CreateOrbiter(entt::registry& registry, entt::entity orbiter, entt::entity orbiting, GW::MATH::GVECTORF orbitDistance);
 
 	/// Creates a normalized vector pointing in a random direction on the X/Z plane
 	GW::MATH::GVECTORF GetRandomVelocityVector();
@@ -43,6 +44,7 @@ namespace UTIL
 
 	float GetRandomRange(float min = 0, float max = 0);
 	void PrintVector(GW::MATH::GVECTORF toPrint);
+
 
 } // namespace UTIL
 #endif // !UTILITIES_H_

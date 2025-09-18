@@ -1,4 +1,5 @@
 #include "Behaviors.h"
+#include "../GAME/Hierarchy.h"
 
 namespace BEHAVIORS
 {
@@ -134,30 +135,16 @@ namespace BEHAVIORS
 			UTIL::CreateModelEntity(registry, neptuneEntity, "Neptune");
 			auto moonEntity = registry.create();
 			UTIL::CreateModelEntity(registry, moonEntity, "Moon");
-
+						
 			// Setup moon for orbit
 			{
-				auto& moonTransform = registry.get<GAME::Transform>(moonEntity);
-				auto& earthTransform = registry.get<GAME::Transform>(earthEntity);
+				GAME::Transform& child = registry.get<GAME::Transform>(moonEntity);
+				GAME::Transform& parent = registry.get<GAME::Transform>(earthEntity);
+				child.world.row4 = registry.get<GAME::Transform>(earthEntity).world.row4;
+
 				registry.emplace<GAME::ParentTransform>(moonEntity, earthEntity);
 
-				/*
-					Matrix4 parentInverse = Inverse(parentWorld);
-					Matrix4 childLocal = parentInverse * childWorld;
-				*/
-
-				GW::MATH::GMATRIXF parentInverse = GW::MATH::GIdentityMatrixF;
-				GW::MATH::GMatrix::InverseF(earthTransform.world, parentInverse);
-				GW::MATH::GMatrix::MultiplyMatrixF(parentInverse, moonTransform.world, moonTransform.local);
-
-				GAME::Orbit moonOrbit = {};
-				moonOrbit.parent = earthEntity;
-				moonOrbit.radius = 2.0f;
-				moonOrbit.angularSpeed = G_DEGREE_TO_RADIAN_F(50.0f);
-				moonOrbit.axis = GAME::ORBIT_AXIS::Y;
-				moonOrbit.currentAngle = 0.0f;
-
-				registry.emplace<GAME::Orbit>(moonEntity, moonOrbit);
+				UTIL::CreateOrbiter(registry, moonEntity, earthEntity, {0, 0, 0, 1});
 			}
 		}
 

@@ -11,7 +11,7 @@ namespace UI
 		Entities,
 		Components,
 		Console,
-		TEST
+		Hierarchy
 	};
 
 	/* Tags */
@@ -19,6 +19,7 @@ namespace UI
 	COMPONENT(UI_ViewEntites) {};
 	COMPONENT(UI_ViewComponents) {};
 	COMPONENT(UI_ViewConsole) {};
+	COMPONENT(UI_ViewHierarchy) {};
 
 	/* Components */
 	COMPONENT(UIData)

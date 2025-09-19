@@ -135,31 +135,19 @@ namespace BEHAVIORS
 			auto moonEntity = registry.create();
 			UTIL::CreateModelEntity(registry, moonEntity, "Moon");
 
-			// Setup moon for orbit
+			// Setup Orbits
 			{
-				auto& child = registry.get<GAME::Transform>(moonEntity);
-				auto& parent = registry.get<GAME::Transform>(earthEntity);
-				registry.emplace<GAME::ParentTransform>(moonEntity, earthEntity);
-
-				// Compute Child Local
-				GW::MATH::GMATRIXF parentInverse = GW::MATH::GIdentityMatrixF;
-				GW::MATH::GMatrix::InverseF(parent.world, parentInverse);
-				GW::MATH::GMatrix::MultiplyMatrixF(child.world, parentInverse, child.local);
-
-				// std::cout << "Child World before: ";
-				// UTIL::PrintVector(child.world.row1);
-				// UTIL::PrintVector(child.world.row2);
-				// UTIL::PrintVector(child.world.row3);
-				// UTIL::PrintVector(child.world.row4);
-				// GW::MATH::GMatrix::MultiplyMatrixF(child.local, parent.world, child.world);
-				// std::cout << "Child World after: ";
-				// UTIL::PrintVector(child.world.row1);
-				// UTIL::PrintVector(child.world.row2);
-				// UTIL::PrintVector(child.world.row3);
-				// UTIL::PrintVector(child.world.row4);
-
-				UTIL::CreateOrbiter(registry, moonEntity, earthEntity);
+				UTIL::CreateOrbiter(registry, earthEntity, sunEntity, "Earth");
+				UTIL::CreateOrbiter(registry, moonEntity, earthEntity, "Moon");
+				UTIL::CreateOrbiter(registry, mercuryEntity, sunEntity, "Mercury");
+				UTIL::CreateOrbiter(registry, venusEntity, sunEntity, "Venus");
+				UTIL::CreateOrbiter(registry, marsEntity, sunEntity, "Mars");
+				UTIL::CreateOrbiter(registry, jupiterEntity, sunEntity, "Jupiter");
+				UTIL::CreateOrbiter(registry, saturnEntity, sunEntity, "Saturn");
+				UTIL::CreateOrbiter(registry, uranusEntity, sunEntity, "Uranus");
+				UTIL::CreateOrbiter(registry, neptuneEntity, sunEntity, "Neptune");
 			}
+			auto& info = registry.emplace<UTIL::DebugInfo>(earthEntity, UTIL::DebugHierarchy::BaseRender);
 		}
 
 		// Create Gameplay Entity to manage all gameplay systems

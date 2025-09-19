@@ -98,11 +98,23 @@ namespace UTIL
 		std::cout << "Vector: {" << toPrint.x << ", " << toPrint.y << ", " << toPrint.z << ", " << toPrint.w << "}\n";
 	}
 
-	void CreateOrbiter(entt::registry& registry, entt::entity orbiter, entt::entity orbiting)
+	void CreateOrbiter(entt::registry& registry, entt::entity orbiter, entt::entity orbiting, std::string iniName)
 	{
+		auto& child = registry.get<GAME::Transform>(orbiter);
+		auto parent = registry.get<GAME::Transform>(orbiting);
+		registry.emplace<GAME::ParentTransform>(orbiter, orbiting);
+
+		// Compute Child Local
+		GW::MATH::GMATRIXF parentInverse = GW::MATH::GIdentityMatrixF;
+		GW::MATH::GMatrix::InverseF(parent.world, parentInverse);
+		GW::MATH::GMatrix::MultiplyMatrixF(child.world, parentInverse, child.local);
+
+		std::shared_ptr<const GameConfig> config = registry.ctx().get<UTIL::Config>().gameConfig;
+		float rot = config.get()->at(iniName).at("rotSpeed").as<float>();
+
 		GAME::Orbit moonOrbit = {};
 		moonOrbit.parent = orbiting;
-		moonOrbit.angularSpeed = G_DEGREE_TO_RADIAN_F(500.0f);
+		moonOrbit.angularSpeed = G_DEGREE_TO_RADIAN_F(rot);
 		moonOrbit.axis = GAME::ORBIT_AXIS::Y;
 		moonOrbit.currentAngle = 0.0f;
 

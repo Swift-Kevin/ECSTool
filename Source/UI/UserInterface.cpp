@@ -27,10 +27,10 @@ namespace UI
 
 		UI::UIData& uiData = registry.get<UI::UIData>(entity);
 		ImGui::SetNextWindowPos(ImVec2(0, 0));
-		ImGui::SetNextWindowSize(ImVec2(uiData.io->DisplaySize.x * 0.5f, uiData.io->DisplaySize.y));
+		ImGui::SetNextWindowSize(ImVec2(uiData.io->DisplaySize.x, uiData.io->DisplaySize.y));
 
 		bool open = true;
-		if (ImGui::Begin("TEST", &open, flags))
+		if (ImGui::Begin("##", &open, flags))
 		{
 			if (ImGui::BeginMenuBar())
 			{
@@ -46,9 +46,9 @@ namespace UI
 				{
 					uiData.state = (uiData.state != UI::MenuState::Console) ? UI::MenuState::Console : UI::MenuState::MenuBar;
 				}
-				if (ImGui::Button("Test"))
+				if (ImGui::Button("Hierarchy"))
 				{
-
+					uiData.state = (uiData.state != UI::MenuState::Hierarchy) ? UI::MenuState::Hierarchy : UI::MenuState::MenuBar;
 				}
 
 				ImGui::EndMenuBar();
@@ -73,15 +73,26 @@ namespace UI
 			registry.patch<UI::UI_ViewConsole>(entity);
 		}
 		break;
-		case UI::MenuState::TEST:
+		case UI::MenuState::Hierarchy:
 		{
-			
+			registry.patch<UI::UI_ViewHierarchy>(entity);
 		}
 		break;
 		default:
 			break;
 		}
 
+		// turn off bitflag for menu bar... since we reuse it
+		flags ^= ImGuiWindowFlags_::ImGuiWindowFlags_MenuBar;
+		ImGui::SetNextWindowPos(ImVec2(uiData.io->DisplaySize.x * 0.8f, uiData.io->DisplaySize.y * 0.95f));
+		ImGui::SetNextWindowSize(ImVec2(uiData.io->DisplaySize.x * 0.2f, uiData.io->DisplaySize.y * 0.1f));
+
+		if (ImGui::Begin("Controls", 0, flags))
+		{
+			ImGui::Text("Hold Mouse 2 - Camera");
+
+		}
+		ImGui::End();
 	}
 
 	void Update_UIViewEntitiesMenu(entt::registry& registry, entt::entity entity)
@@ -143,6 +154,48 @@ namespace UI
 	void Update_UIViewConsoleMenu(entt::registry& registry, entt::entity entity)
 	{
 		//std::cout << "Updating: Console\n";
+	}
+
+	void Update_UIViewHierarchy(entt::registry& registry, entt::entity entity)
+	{
+		ImGuiWindowFlags flags = {};
+		flags |= ImGuiWindowFlags_::ImGuiWindowFlags_NoMove;
+		flags |= ImGuiWindowFlags_::ImGuiWindowFlags_NoResize;
+		flags |= ImGuiWindowFlags_::ImGuiWindowFlags_NoCollapse;
+		flags |= ImGuiWindowFlags_::ImGuiWindowFlags_NoBackground;
+
+		UI::UIData& uiData = registry.get<UI::UIData>(entity);
+		ImGui::SetNextWindowPos(ImVec2(0, uiData.io->DisplaySize.y * 0.025));
+
+		auto& info = registry.get<UTIL::DebugInfo>(registry.group<UTIL::DebugInfo>().front());
+		if (ImGui::Begin("Hierarchy", 0, flags))
+		{
+			if (ImGui::Button("Base Render"))
+			{
+				info.debugMode = UTIL::DebugHierarchy::BaseRender;
+			}
+			if (ImGui::Button("Child - Rotation"))
+			{
+				info.debugMode = UTIL::DebugHierarchy::Rotation;
+			}
+			if (ImGui::Button("Child - Translation"))
+			{
+				info.debugMode = UTIL::DebugHierarchy::Translation;
+			}
+			if (ImGui::Button("Child - Scales"))
+			{
+				info.debugMode = UTIL::DebugHierarchy::Scale;
+			}
+			if (ImGui::Button("Combined"))
+			{
+				info.debugMode = UTIL::DebugHierarchy::Combined;
+			}
+			if (ImGui::Button("Multi Combined"))
+			{
+				info.debugMode = UTIL::DebugHierarchy::SolarSystem;
+			}
+		}
+		ImGui::End();
 	}
 
 	void Construct_UIContext(entt::registry& registry, entt::entity entity)
@@ -247,6 +300,7 @@ namespace UI
 		registry.emplace<UI::UI_ViewEntites>(entity);
 		registry.emplace<UI::UI_ViewComponents>(entity);
 		registry.emplace<UI::UI_ViewConsole>(entity);
+		registry.emplace<UI::UI_ViewHierarchy>(entity);
 	}
 
 	void Update_UIContext(entt::registry& registry, entt::entity entity)
@@ -266,6 +320,7 @@ namespace UI
 		// For referencing documentation:
 		// ImGui::ShowDemoWindow();
 
+
 		registry.patch<UI::UI_MenuBar>(entity);
 	}
 
@@ -276,6 +331,7 @@ namespace UI
 		registry.on_update<UI::UI_ViewEntites>().connect<Update_UIViewEntitiesMenu>();
 		registry.on_update<UI::UI_ViewComponents>().connect<Update_UIViewComponentsMenu>();
 		registry.on_update<UI::UI_ViewConsole>().connect<Update_UIViewConsoleMenu>();
+		registry.on_update<UI::UI_ViewHierarchy>().connect<Update_UIViewHierarchy>();
 
 		// UI Data Component
 		registry.on_construct<UI::UIData>().connect<Construct_UIContext>();

@@ -36,7 +36,44 @@ namespace GAME
 			auto parent = registry.get<Transform>(parentEntt);
 			auto orbit = registry.get<Orbit>(entity);
 
-			GW::MATH::GMatrix::RotateYGlobalF(parent.world, orbit.currentAngle, parent.world);
+			UTIL::DebugInfo dInfo = registry.get<UTIL::DebugInfo>(registry.group<UTIL::DebugInfo>().front());
+			switch (dInfo.debugMode)
+			{
+			case UTIL::DebugHierarchy::BaseRender:
+			{
+
+				break;
+			}
+			case UTIL::DebugHierarchy::Rotation:
+			{
+				GW::MATH::GMatrix::RotateYGlobalF(parent.world, -orbit.currentAngle, parent.world);
+				break;
+			}
+			case UTIL::DebugHierarchy::Translation:
+			{
+
+				break;
+			}
+			case UTIL::DebugHierarchy::Scale:
+			{
+
+				break;
+			}
+			case UTIL::DebugHierarchy::Combined:
+			{
+
+				break;
+			}
+			case UTIL::DebugHierarchy::SolarSystem:
+			{
+
+				break;
+			}
+
+			default:
+				break;
+			}
+
 			GW::MATH::GMatrix::MultiplyMatrixF(child.local, parent.world, child.world);
 		}
 	}
@@ -46,6 +83,10 @@ namespace GAME
 		auto orbiters = registry.view<Transform, Orbit>();
 		auto& deltaTime = registry.ctx().get<UTIL::DeltaTime>().dtSec;
 
+		UTIL::DebugInfo dInfo = registry.get<UTIL::DebugInfo>(registry.group<UTIL::DebugInfo>().front());
+		if (dInfo.debugMode != UTIL::DebugHierarchy::Rotation && dInfo.debugMode != UTIL::DebugHierarchy::SolarSystem && dInfo.debugMode != UTIL::DebugHierarchy::Combined )
+			return;
+		
 		for (auto entity : orbiters)
 		{
 			auto& orbit = registry.get<Orbit>(entity);

@@ -11,9 +11,11 @@ namespace UTIL
 	static const std::string PlayerName = "Player";
 	static const std::string Projectile1Name = "Bullet";
 
+	enum DebugHierarchy { BaseRender, Rotation, Translation, Scale, Combined, SolarSystem };
+
 	COMPONENT(DebugInfo)
 	{
-		std::string name = "";
+		DebugHierarchy debugMode;
 	};
 
 	COMPONENT(Config)
@@ -43,7 +45,7 @@ namespace UTIL
 
 	float GetRandomRange(float min = 0, float max = 0);
 	void PrintVector(GW::MATH::GVECTORF toPrint);
-	void CreateOrbiter(entt::registry& registry, entt::entity orbiter, entt::entity orbiting);
+	void CreateOrbiter(entt::registry& registry, entt::entity orbiter, entt::entity orbiting, std::string iniName = "");
 
 } // namespace UTIL
 #endif // !UTILITIES_H_

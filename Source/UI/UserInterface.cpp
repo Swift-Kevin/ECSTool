@@ -106,7 +106,7 @@ namespace UI
 		flags |= ImGuiWindowFlags_::ImGuiWindowFlags_NoBackground;
 
 		UI::UIData& uiData = registry.get<UI::UIData>(entity);
-		ImGui::SetNextWindowPos(ImVec2(0, uiData.io->DisplaySize.y * 0.025));
+		ImGui::SetNextWindowPos(ImVec2(0, uiData.io->DisplaySize.y * 0.03));
 
 		if (ImGui::Begin("Entities", 0, flags))
 		{
@@ -133,7 +133,7 @@ namespace UI
 		flags |= ImGuiWindowFlags_::ImGuiWindowFlags_NoBackground;
 
 		UI::UIData& uiData = registry.get<UI::UIData>(entity);
-		ImGui::SetNextWindowPos(ImVec2(0, uiData.io->DisplaySize.y * 0.025));
+		ImGui::SetNextWindowPos(ImVec2(0, uiData.io->DisplaySize.y * 0.03));
 
 		if (ImGui::Begin("Components", 0, flags))
 		{
@@ -165,9 +165,10 @@ namespace UI
 		flags |= ImGuiWindowFlags_::ImGuiWindowFlags_NoBackground;
 
 		UI::UIData& uiData = registry.get<UI::UIData>(entity);
-		ImGui::SetNextWindowPos(ImVec2(0, uiData.io->DisplaySize.y * 0.025));
+		ImGui::SetNextWindowPos(ImVec2(0, uiData.io->DisplaySize.y * 0.03));
+		ImGui::SetNextWindowSize(ImVec2(uiData.io->DisplaySize.x, uiData.io->DisplaySize.y));
 
-		auto& info = registry.get<UTIL::DebugInfo>(registry.group<UTIL::DebugInfo>().front());
+		auto& info = registry.ctx().get<UTIL::DebugInfo>();
 		if (ImGui::Begin("Hierarchy", 0, flags))
 		{
 			if (ImGui::Button("Base Render"))

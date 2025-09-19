@@ -27,49 +27,63 @@ namespace GAME
 	void UpdateWorldTransforms(entt::registry& registry)
 	{
 		// Going to Update this to be better
-		auto transforms = registry.view<Transform, ParentTransform>();
+		auto transforms = registry.view<Transform, Orbit, ParentTransform>();
+		auto deltaTime = registry.ctx().get<UTIL::DeltaTime>();
+		bool isEarth = false;
 
 		for (auto entity : transforms)
 		{
+			isEarth = registry.any_of<GAME::EARTH>(entity);
+
 			auto& child = registry.get<Transform>(entity);
 			entt::entity parentEntt = registry.get<Orbit>(entity).parent;
 			auto parent = registry.get<Transform>(parentEntt);
 			auto orbit = registry.get<Orbit>(entity);
 
-			UTIL::DebugInfo dInfo = registry.get<UTIL::DebugInfo>(registry.group<UTIL::DebugInfo>().front());
+			UTIL::DebugInfo dInfo = registry.ctx().get<UTIL::DebugInfo>();
+			GW::MATH::GVECTORF translate = { 0, dInfo.theta, 0, 1 };
+			GW::MATH::GVECTORF scale = { dInfo.theta, dInfo.theta, dInfo.theta, 1 };
+
 			switch (dInfo.debugMode)
 			{
-			case UTIL::DebugHierarchy::BaseRender:
-			{
-
-				break;
-			}
 			case UTIL::DebugHierarchy::Rotation:
 			{
-				GW::MATH::GMatrix::RotateYGlobalF(parent.world, -orbit.currentAngle, parent.world);
+				GW::MATH::GMatrix::RotateYGlobalF(parent.world, orbit.currentAngle, parent.world);
 				break;
 			}
 			case UTIL::DebugHierarchy::Translation:
 			{
-
+				if (isEarth)
+					GW::MATH::GMatrix::TranslateGlobalF(parent.world, translate, parent.world);
 				break;
 			}
 			case UTIL::DebugHierarchy::Scale:
 			{
-
+				if (isEarth)
+					GW::MATH::GMatrix::ScaleLocalF(parent.world, scale, parent.world);
 				break;
 			}
 			case UTIL::DebugHierarchy::Combined:
 			{
+				if (isEarth)
+					GW::MATH::GMatrix::TranslateGlobalF(parent.world, translate, parent.world);
+
+				GW::MATH::GMatrix::RotateYGlobalF(parent.world, orbit.currentAngle, parent.world);
+
+				if (isEarth)
+					GW::MATH::GMatrix::ScaleLocalF(parent.world, scale, parent.world);
 
 				break;
 			}
 			case UTIL::DebugHierarchy::SolarSystem:
 			{
-
+				GW::MATH::GMatrix::RotateYGlobalF(parent.world, orbit.currentAngle, parent.world);
+				if (isEarth)
+				{
+					GW::MATH::GMatrix::TranslateGlobalF(parent.world, translate, parent.world);
+				}
 				break;
 			}
-
 			default:
 				break;
 			}
@@ -83,19 +97,9 @@ namespace GAME
 		auto orbiters = registry.view<Transform, Orbit>();
 		auto& deltaTime = registry.ctx().get<UTIL::DeltaTime>().dtSec;
 
-		UTIL::DebugInfo dInfo = registry.get<UTIL::DebugInfo>(registry.group<UTIL::DebugInfo>().front());
-		if (dInfo.debugMode != UTIL::DebugHierarchy::Rotation && dInfo.debugMode != UTIL::DebugHierarchy::SolarSystem && dInfo.debugMode != UTIL::DebugHierarchy::Combined )
-			return;
-		
 		for (auto entity : orbiters)
 		{
 			auto& orbit = registry.get<Orbit>(entity);
-
-			if (orbit.parent == entt::null || !registry.all_of<Transform>(orbit.parent))
-			{
-				continue;
-			}
-
 			orbit.currentAngle += orbit.angularSpeed * deltaTime;
 		}
 	}

@@ -135,6 +135,8 @@ namespace BEHAVIORS
 			auto moonEntity = registry.create();
 			UTIL::CreateModelEntity(registry, moonEntity, "Moon");
 
+			registry.emplace<GAME::EARTH>(earthEntity);
+			
 			// Setup Orbits
 			{
 				UTIL::CreateOrbiter(registry, earthEntity, sunEntity, "Earth");
@@ -147,7 +149,6 @@ namespace BEHAVIORS
 				UTIL::CreateOrbiter(registry, uranusEntity, sunEntity, "Uranus");
 				UTIL::CreateOrbiter(registry, neptuneEntity, sunEntity, "Neptune");
 			}
-			auto& info = registry.emplace<UTIL::DebugInfo>(earthEntity, UTIL::DebugHierarchy::BaseRender);
 		}
 
 		// Create Gameplay Entity to manage all gameplay systems
@@ -165,7 +166,10 @@ namespace BEHAVIORS
 	{
 		int closedCount;
 		auto winView = registry.view<APP::Window>();
-		auto& deltaTime = registry.ctx().emplace<UTIL::DeltaTime>().dtSec;
+		auto& time = registry.ctx().emplace<UTIL::DeltaTime>();
+
+		UTIL::DebugInfo& dbg = registry.ctx().emplace<UTIL::DebugInfo>();
+		dbg.debugMode = UTIL::DebugHierarchy::BaseRender;
 
 		do
 		{
@@ -177,7 +181,9 @@ namespace BEHAVIORS
 			// Cap delta time to min 30 fps.
 			if (elapsed > 1.0 / 30.0) { elapsed = 1.0 / 30.0; }
 
-			deltaTime = elapsed;
+			time.dtSec = elapsed;
+			time.totalTime += elapsed;
+			dbg.theta = std::sin(time.totalTime);
 
 			// Update Game
 			auto gameManagerGroup = registry.group<GAME::GameManager>();

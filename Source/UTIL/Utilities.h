@@ -16,6 +16,7 @@ namespace UTIL
 	COMPONENT(DebugInfo)
 	{
 		DebugHierarchy debugMode;
+		float theta = 0.0f;
 	};
 
 	COMPONENT(Config)
@@ -25,7 +26,8 @@ namespace UTIL
 
 	COMPONENT(DeltaTime)
 	{
-		double dtSec;
+		double dtSec = 0.0f;;
+		double totalTime = 0.0f;
 	};
 
 	COMPONENT(Input)

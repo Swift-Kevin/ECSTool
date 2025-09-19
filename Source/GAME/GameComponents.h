@@ -13,6 +13,8 @@ namespace GAME
 	};
 
 	///*** Tags ***///
+	COMPONENT(EARTH) {};
+	
 	COMPONENT(Player) {};
 	COMPONENT(Obstacle) {};
 	COMPONENT(Collidable) {};

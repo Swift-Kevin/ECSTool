@@ -13,6 +13,7 @@ namespace GAME
 	};
 
 	///*** Tags ***///
+	COMPONENT(SUN) {};
 	COMPONENT(EARTH) {};
 	
 	COMPONENT(Player) {};

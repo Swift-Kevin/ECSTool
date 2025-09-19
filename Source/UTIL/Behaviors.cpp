@@ -136,6 +136,7 @@ namespace BEHAVIORS
 			UTIL::CreateModelEntity(registry, moonEntity, "Moon");
 
 			registry.emplace<GAME::EARTH>(earthEntity);
+			registry.emplace<GAME::SUN>(sunEntity);
 			
 			// Setup Orbits
 			{

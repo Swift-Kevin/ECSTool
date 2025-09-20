@@ -44,6 +44,7 @@ namespace GAME
 		ORBIT_AXIS axis = ORBIT_AXIS::Y;
 		float angularSpeed = 1.0f;
 		float currentAngle = 0.0f;
+		float currentOffset = 0.0f;
 	};
 
 	COMPONENT(Velocity)

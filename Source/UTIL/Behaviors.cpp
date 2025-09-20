@@ -162,7 +162,7 @@ namespace BEHAVIORS
 			time.totalTime += elapsed;
 			dbg.theta = std::cos(std::sin(time.totalTime));
 
-			if (counter < 100)
+			if (counter < 10000)
 			{
 				entt::entity sun = registry.group<GAME::Sun>().front();
 				entt::entity created = SOL::CreateMoon(registry, sun, UTIL::GetRandomRange(-1000, 1000));

@@ -90,12 +90,17 @@ namespace GAME
 	void UpdateOrbits(entt::registry& registry)
 	{
 		auto orbiters = registry.view<Transform, Orbit>();
-		auto& deltaTime = registry.ctx().get<UTIL::DeltaTime>().dtSec;
+		auto& deltaTime = registry.ctx().get<UTIL::DeltaTime>();
 
-		for (auto entity : orbiters)
+		for (auto [entity, transform, orbit] : orbiters.each())
 		{
-			auto& orbit = registry.get<Orbit>(entity);
-			orbit.currentAngle += orbit.angularSpeed * deltaTime;
+			orbit.currentAngle += orbit.angularSpeed * deltaTime.dtSec;
+
+			if (auto obs = registry.try_get<Observe>(entity))
+				orbit.currentOffset = std::cos(std::sin(deltaTime.totalTime + obs->offsetTranslate));
+			else
+				orbit.currentOffset = std::cos(std::sin(deltaTime.totalTime));
+
 		}
 	}
 

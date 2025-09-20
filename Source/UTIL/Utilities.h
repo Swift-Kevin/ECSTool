@@ -48,6 +48,8 @@ namespace UTIL
 	float GetRandomRange(float min = 0, float max = 0);
 	void PrintVector(GW::MATH::GVECTORF toPrint);
 	void CreateOrbiter(entt::registry& registry, entt::entity orbiter, entt::entity orbiting, std::string iniName = "");
+	GW::MATH::GVECTORF GetRotationFromMatrix(GW::MATH::GMATRIXF matrix);
+	void UpdateWorldPosition(GW::MATH::GMATRIXF parentWorld, GW::MATH::GMATRIXF& childWorld, float radius);
 
 } // namespace UTIL
 #endif // !UTILITIES_H_

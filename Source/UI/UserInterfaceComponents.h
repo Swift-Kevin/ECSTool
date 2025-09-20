@@ -11,11 +11,13 @@ namespace UI
 		Entities,
 		Components,
 		Console,
-		Hierarchy
+		Hierarchy,
+		Inspector
 	};
 
 	/* Tags */
 	COMPONENT(UI_MenuBar) {};
+	COMPONENT(UI_Inspector) {};
 	COMPONENT(UI_ViewEntites) {};
 	COMPONENT(UI_ViewComponents) {};
 	COMPONENT(UI_ViewConsole) {};

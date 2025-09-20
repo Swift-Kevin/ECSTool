@@ -26,19 +26,16 @@ namespace GAME
 
 	void UpdateWorldTransforms(entt::registry& registry)
 	{
-		// Going to Update this to be better
 		auto transforms = registry.view<Transform, Orbit, ParentTransform>();
 		auto deltaTime = registry.ctx().get<UTIL::DeltaTime>();
-		bool isEarth = false;
+		bool observeChange = false;
 
-		for (auto entity : transforms)
+		for (auto [entity, transform, orbit, parentEntity] : transforms.each())
 		{
-			isEarth = registry.any_of<GAME::EARTH>(entity);
+			observeChange = registry.any_of<GAME::Observe>(entity);
 
 			auto& child = registry.get<Transform>(entity);
-			entt::entity parentEntt = registry.get<Orbit>(entity).parent;
-			auto parent = registry.get<Transform>(parentEntt);
-			auto orbit = registry.get<Orbit>(entity);
+			auto parent = registry.get<Transform>(parentEntity.parent);
 
 			UTIL::DebugInfo dInfo = registry.ctx().get<UTIL::DebugInfo>();
 			GW::MATH::GVECTORF translate = { 0, dInfo.theta, 0, 1 };
@@ -53,24 +50,24 @@ namespace GAME
 			}
 			case UTIL::DebugHierarchy::Translation:
 			{
-				if (isEarth)
+				if (observeChange)
 					GW::MATH::GMatrix::TranslateGlobalF(parent.world, translate, parent.world);
 				break;
 			}
 			case UTIL::DebugHierarchy::Scale:
 			{
-				if (isEarth)
+				if (observeChange)
 					GW::MATH::GMatrix::ScaleLocalF(parent.world, scale, parent.world);
 				break;
 			}
 			case UTIL::DebugHierarchy::Combined:
 			{
-				if (isEarth)
+				if (observeChange)
 					GW::MATH::GMatrix::TranslateGlobalF(parent.world, translate, parent.world);
 
 				GW::MATH::GMatrix::RotateYGlobalF(parent.world, orbit.currentAngle, parent.world);
 
-				if (isEarth)
+				if (observeChange)
 					GW::MATH::GMatrix::ScaleLocalF(parent.world, scale, parent.world);
 
 				break;
@@ -78,10 +75,8 @@ namespace GAME
 			case UTIL::DebugHierarchy::SolarSystem:
 			{
 				GW::MATH::GMatrix::RotateYGlobalF(parent.world, orbit.currentAngle, parent.world);
-				if (isEarth)
-				{
+				if (observeChange)
 					GW::MATH::GMatrix::TranslateGlobalF(parent.world, translate, parent.world);
-				}
 				break;
 			}
 			default:

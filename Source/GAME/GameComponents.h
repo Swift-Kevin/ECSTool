@@ -13,9 +13,10 @@ namespace GAME
 	};
 
 	///*** Tags ***///
-	COMPONENT(SUN) {};
-	COMPONENT(EARTH) {};
-	
+	COMPONENT(Sun) {};
+	COMPONENT(Moon) {};
+	COMPONENT(Earth) {};
+	COMPONENT(Observe) {};
 	COMPONENT(Player) {};
 	COMPONENT(Obstacle) {};
 	COMPONENT(Collidable) {};

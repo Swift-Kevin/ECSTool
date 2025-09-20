@@ -90,7 +90,8 @@ namespace UTIL
 
 	float GetRandomRange(float min, float max)
 	{
-		return (static_cast <float> (rand() % (int)max) / static_cast <float> (RAND_MAX)) + min;
+		float t = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
+		return min + t * (max - min);
 	}
 
 	void PrintVector(GW::MATH::GVECTORF toPrint)
@@ -119,6 +120,54 @@ namespace UTIL
 		moonOrbit.currentAngle = 0.0f;
 
 		registry.emplace<GAME::Orbit>(orbiter, moonOrbit);
+	}
+
+	GW::MATH::GVECTORF GetRotationFromMatrix(GW::MATH::GMATRIXF matrix)
+	{
+		double r00 = matrix.row1.x, r01 = matrix.row1.y, r02 = matrix.row1.z;
+		double r10 = matrix.row2.x, r11 = matrix.row2.y, r12 = matrix.row2.z;
+		double r20 = matrix.row3.x, r21 = matrix.row3.y, r22 = matrix.row3.z;
+
+		float pitch = std::asin(-r02);
+		float roll, yaw;
+		if (std::fabs(std::cos(pitch)) > G_EPSILON_F)
+		{
+			// x rot
+			roll = std::atan2(r12, r22);
+			// z rot
+			yaw = std::atan2(r01, r00);
+		}
+		else
+		{
+			// gimbal lock
+			roll = 0.0;
+			yaw = std::atan2(-r10, r11);
+		}
+
+		return GW::MATH::GVECTORF{ G_RADIAN_TO_DEGREE_F(roll), G_RADIAN_TO_DEGREE_F(pitch), G_RADIAN_TO_DEGREE_F(yaw) };
+		//return GW::MATH::GVECTORF{ roll, pitch, yaw };
+	}
+
+	GW::MATH::GVECTORF RandomPointInCircle(float radius)
+	{
+		float angle = GetRandomRange(0, 1) * 2.0f * G_PI_F;
+		float r = radius * std::sqrt(GetRandomRange(0, 1));
+		return { r * std::cos(angle), 0, r * std::sin(angle) };
+	}
+
+	void UpdateWorldPosition(GW::MATH::GMATRIXF parentWorld, GW::MATH::GMATRIXF& childWorld, float radius)
+	{
+		GW::MATH::GMATRIXF parentInverse, local = GW::MATH::GIdentityMatrixF;
+		GW::MATH::GMatrix::InverseF(parentWorld, parentInverse);
+		GW::MATH::GMatrix::MultiplyMatrixF(childWorld, parentInverse, local);
+
+		// apply offset
+		GW::MATH::GVECTORF pos = RandomPointInCircle(radius);
+		parentWorld.row4.x += pos.x;
+		parentWorld.row4.y += pos.y;
+		parentWorld.row4.z += pos.z;
+
+		childWorld.row4 = parentWorld.row4;
 	}
 
 } // namespace UTIL

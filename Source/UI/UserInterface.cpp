@@ -14,6 +14,24 @@ static LRESULT CALLBACK ImGui_WndProcHook(HWND hWnd, UINT msg, WPARAM wParam, LP
 
 namespace UI
 {
+	void ConstructTransformInpsector(GW::MATH::GMATRIXF& matrix)
+	{
+		auto& rotVec = UTIL::GetRotationFromMatrix(matrix);
+		float* pos[3] = { &matrix.row4.x, &matrix.row4.y, &matrix.row4.z, };
+		float* rot[3] = { &rotVec.x, &rotVec.y, &rotVec.z };
+		float* sca[3] = { &matrix.row1.x, &matrix.row2.y, &matrix.row3.z };
+
+		ImGui::TextUnformatted("Position");
+		ImGui::SameLine();
+		ImGui::DragFloat3("##Position", *pos, 0.1f);
+		ImGui::TextUnformatted("Rotation");
+		ImGui::SameLine();
+		ImGui::DragFloat3("##Rotation", *rot, 0.1f);
+		ImGui::TextUnformatted("Scale");
+		ImGui::SameLine();
+		ImGui::DragFloat3("##Scale", *sca, 0.1f);
+	}
+
 	void Update_UIMenuBar(entt::registry& registry, entt::entity entity)
 	{
 		// Menu Bar
@@ -50,6 +68,10 @@ namespace UI
 				{
 					uiData.state = (uiData.state != UI::MenuState::Hierarchy) ? UI::MenuState::Hierarchy : UI::MenuState::MenuBar;
 				}
+				if (ImGui::Button("Inspector"))
+				{
+					uiData.state = (uiData.state != UI::MenuState::Inspector) ? UI::MenuState::Inspector: UI::MenuState::MenuBar;
+				}
 
 				ImGui::EndMenuBar();
 			}
@@ -76,6 +98,11 @@ namespace UI
 		case UI::MenuState::Hierarchy:
 		{
 			registry.patch<UI::UI_ViewHierarchy>(entity);
+		}
+		break;
+		case UI::MenuState::Inspector:
+		{
+			registry.patch<UI::UI_Inspector>(entity);
 		}
 		break;
 		default:
@@ -175,15 +202,15 @@ namespace UI
 			{
 				info.debugMode = UTIL::DebugHierarchy::BaseRender;
 			}
-			if (ImGui::Button("Child - Rotation"))
+			if (ImGui::Button("Rotation"))
 			{
 				info.debugMode = UTIL::DebugHierarchy::Rotation;
 			}
-			if (ImGui::Button("Child - Translation"))
+			if (ImGui::Button("Translation"))
 			{
 				info.debugMode = UTIL::DebugHierarchy::Translation;
 			}
-			if (ImGui::Button("Child - Scales"))
+			if (ImGui::Button("Scales"))
 			{
 				info.debugMode = UTIL::DebugHierarchy::Scale;
 			}
@@ -195,6 +222,43 @@ namespace UI
 			{
 				info.debugMode = UTIL::DebugHierarchy::SolarSystem;
 			}
+		}
+		ImGui::End();
+	}
+	
+	void Update_UIInspector(entt::registry& registry, entt::entity entity)
+	{
+		ImGuiWindowFlags flags = {};
+		flags |= ImGuiWindowFlags_::ImGuiWindowFlags_NoCollapse;
+		flags |= ImGuiWindowFlags_::ImGuiWindowFlags_NoBackground;
+
+		UI::UIData& uiData = registry.get<UI::UIData>(entity);
+		ImGui::SetNextWindowPos(ImVec2(0, uiData.io->DisplaySize.y * 0.03));
+		ImGui::SetNextWindowSize(ImVec2(200, uiData.io->DisplaySize.y));
+
+		if (ImGui::Begin("##", 0, flags))
+		{
+			ImGui::PushItemWidth(200);
+			GAME::Transform transform = registry.get<GAME::Transform>(registry.view<GAME::Earth>().front());
+			if (ImGui::CollapsingHeader("Earth - World Transform", ImGuiTreeNodeFlags_DefaultOpen)) 
+			{
+				ConstructTransformInpsector(transform.world);
+			}
+			if (ImGui::CollapsingHeader("Earth - Local Transform", ImGuiTreeNodeFlags_DefaultOpen))
+			{
+				ConstructTransformInpsector(transform.local);
+			}
+
+			transform = registry.get<GAME::Transform>(registry.view<GAME::Moon>().front());
+			if (ImGui::CollapsingHeader("Moon - World Transform", ImGuiTreeNodeFlags_DefaultOpen))
+			{
+				ConstructTransformInpsector(transform.world);
+			}
+			if (ImGui::CollapsingHeader("Moon - Local Transform", ImGuiTreeNodeFlags_DefaultOpen))
+			{
+				ConstructTransformInpsector(transform.local);
+			}
+			ImGui::PopItemWidth();
 		}
 		ImGui::End();
 	}
@@ -302,6 +366,7 @@ namespace UI
 		registry.emplace<UI::UI_ViewComponents>(entity);
 		registry.emplace<UI::UI_ViewConsole>(entity);
 		registry.emplace<UI::UI_ViewHierarchy>(entity);
+		registry.emplace<UI::UI_Inspector>(entity);
 	}
 
 	void Update_UIContext(entt::registry& registry, entt::entity entity)
@@ -321,7 +386,6 @@ namespace UI
 		// For referencing documentation:
 		// ImGui::ShowDemoWindow();
 
-
 		registry.patch<UI::UI_MenuBar>(entity);
 	}
 
@@ -333,6 +397,7 @@ namespace UI
 		registry.on_update<UI::UI_ViewComponents>().connect<Update_UIViewComponentsMenu>();
 		registry.on_update<UI::UI_ViewConsole>().connect<Update_UIViewConsoleMenu>();
 		registry.on_update<UI::UI_ViewHierarchy>().connect<Update_UIViewHierarchy>();
+		registry.on_update<UI::UI_Inspector>().connect<Update_UIInspector>();
 
 		// UI Data Component
 		registry.on_construct<UI::UIData>().connect<Construct_UIContext>();

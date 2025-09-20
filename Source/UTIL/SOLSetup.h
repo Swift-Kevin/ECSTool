@@ -7,6 +7,8 @@
 
 namespace SOL
 {
+	entt::entity CreateMoon(entt::registry& registry, entt::entity parent, float radius);
+
 	void SetupMercury(entt::registry& registry);
 	void SetupVenus(entt::registry& registry);
 	void SetupEarth(entt::registry& registry);

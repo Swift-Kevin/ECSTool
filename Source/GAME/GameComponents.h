@@ -16,7 +16,6 @@ namespace GAME
 	COMPONENT(Sun) {};
 	COMPONENT(Moon) {};
 	COMPONENT(Earth) {};
-	COMPONENT(Observe) {};
 	COMPONENT(Player) {};
 	COMPONENT(Obstacle) {};
 	COMPONENT(Collidable) {};
@@ -27,6 +26,11 @@ namespace GAME
 	{
 		GW::MATH::GMATRIXF local = GW::MATH::GIdentityMatrixF;
 		GW::MATH::GMATRIXF world = GW::MATH::GIdentityMatrixF;
+	};
+
+	COMPONENT(Observe) 
+	{
+		float offsetTranslate = 0.0f;
 	};
 
 	COMPONENT(ParentTransform)

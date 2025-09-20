@@ -4,6 +4,21 @@
 
 namespace SOL
 {
+	entt::entity CreateMoon(entt::registry& registry, entt::entity parentE, float radius)
+	{
+		// Creating the Earth's Moon Orbiting Earth
+		auto moonEntity = registry.create();
+		UTIL::CreateModelEntity(registry, moonEntity, "Moon");
+
+		auto& child = registry.get<GAME::Transform>(moonEntity);
+		auto parent = registry.get<GAME::Transform>(parentE);
+		UTIL::UpdateWorldPosition(parent.world, child.world, radius);
+		UTIL::CreateOrbiter(registry, moonEntity, parentE, "Moon");
+		registry.emplace<GAME::Observe>(moonEntity, UTIL::GetRandomRange(0.1, 10));
+
+		return moonEntity;
+	}
+
 	void SetupMercury(entt::registry& registry)
 	{
 		entt::entity sunEntity = registry.view<GAME::Sun>().front();
@@ -32,20 +47,12 @@ namespace SOL
 		registry.emplace<GAME::Earth>(earthEntity);
 		UTIL::CreateOrbiter(registry, earthEntity, sunEntity, "Earth");
 
-		// Creating the Earth's Moon Orbiting Earth
-		auto moonEntity = registry.create();
-		UTIL::CreateModelEntity(registry, moonEntity, "Moon");
-		registry.emplace<GAME::Moon>(moonEntity);
-
 		// Create the Moon around Earth (+ fix position with it)
-		auto& child = registry.get<GAME::Transform>(moonEntity);
-		auto parent = registry.get<GAME::Transform>(earthEntity);
-		UTIL::UpdateWorldPosition(parent.world, child.world, 5);
-		UTIL::CreateOrbiter(registry, moonEntity, earthEntity, "Moon");
+		entt::entity moon = CreateMoon(registry, earthEntity, UTIL::GetRandomRange(3, 5));
+		registry.emplace<GAME::Moon>(moon); // for inspector debugging
 
 		// Visualize Changes on these entites
 		registry.emplace<GAME::Observe>(earthEntity);
-		registry.emplace<GAME::Observe>(moonEntity);
 	}
 
 	void SetupMars(entt::registry& registry)
@@ -57,48 +64,58 @@ namespace SOL
 		UTIL::CreateModelEntity(registry, marsEntity, "Mars");
 		UTIL::CreateOrbiter(registry, marsEntity, sunEntity, "Mars");
 
-		// Create Phobos and Child it to Mars
-		auto phobosEntity = registry.create();
-		UTIL::CreateModelEntity(registry, phobosEntity, "Moon");
-		auto& phobosTransform = registry.get<GAME::Transform>(phobosEntity);
-		auto parent = registry.get<GAME::Transform>(marsEntity);
-		UTIL::UpdateWorldPosition(parent.world, phobosTransform.world, 3);
-		UTIL::CreateOrbiter(registry, phobosEntity, marsEntity, "Moon");
-
+		// Create Phobos
+		CreateMoon(registry, marsEntity, UTIL::GetRandomRange(4, 6));
 		// Create Deimos
-		auto deimosEntity = registry.create();
-		UTIL::CreateModelEntity(registry, deimosEntity, "Moon");
-
-		auto& deimosTransform = registry.get<GAME::Transform>(deimosEntity);
-		UTIL::UpdateWorldPosition(parent.world, deimosTransform.world, 5);
-		UTIL::CreateOrbiter(registry, deimosEntity, marsEntity, "Moon");
-
-		// Visualize Changes on these entites
-		registry.emplace<GAME::Observe>(phobosEntity);
-		registry.emplace<GAME::Observe>(deimosEntity);
+		CreateMoon(registry, marsEntity, UTIL::GetRandomRange(4, 6));
 	}
 
 	void SetupJupiter(entt::registry& registry)
 	{
 		entt::entity sunEntity = registry.view<GAME::Sun>().front();
 
-		// Create Jupiter and Orbit it around the Sun... icarus who?
+		// Jupiter around the Sun
 		auto jupiterEntity = registry.create();
 		UTIL::CreateModelEntity(registry, jupiterEntity, "Jupiter");
 		UTIL::CreateOrbiter(registry, jupiterEntity, sunEntity, "Jupiter");
+
+		// Io
+		CreateMoon(registry, jupiterEntity, UTIL::GetRandomRange(6, 10));
+		// Europa
+		CreateMoon(registry, jupiterEntity, UTIL::GetRandomRange(6, 10));
+		// Ganymede
+		CreateMoon(registry, jupiterEntity, UTIL::GetRandomRange(6, 10));
+		// Callisto
+		CreateMoon(registry, jupiterEntity, UTIL::GetRandomRange(6, 10));
 	}
 
 	void SetupSaturn(entt::registry& registry)
 	{
 		entt::entity sunEntity = registry.view<GAME::Sun>().front();
 
-		// Im not going crazy
 		// Saturn around the Sun
 		auto saturnEntity = registry.create();
 		UTIL::CreateModelEntity(registry, saturnEntity, "Saturn");
 		UTIL::CreateOrbiter(registry, saturnEntity, sunEntity, "Saturn");
 
-
+		// Mimas
+		CreateMoon(registry, saturnEntity, UTIL::GetRandomRange(8, 15));
+		// Enceldaus
+		CreateMoon(registry, saturnEntity, UTIL::GetRandomRange(8, 15));
+		// Tethys
+		CreateMoon(registry, saturnEntity, UTIL::GetRandomRange(8, 15));
+		// Dione
+		CreateMoon(registry, saturnEntity, UTIL::GetRandomRange(8, 15));
+		// Rhea
+		CreateMoon(registry, saturnEntity, UTIL::GetRandomRange(8, 15));
+		// Titan
+		CreateMoon(registry, saturnEntity, UTIL::GetRandomRange(8, 15));
+		// Hyperion
+		CreateMoon(registry, saturnEntity, UTIL::GetRandomRange(8, 15));
+		// Iapetus
+		CreateMoon(registry, saturnEntity, UTIL::GetRandomRange(8, 15));
+		// Phoebe
+		CreateMoon(registry, saturnEntity, UTIL::GetRandomRange(8, 15));
 	}
 
 	void SetupUranus(entt::registry& registry)
@@ -110,6 +127,18 @@ namespace SOL
 		UTIL::CreateModelEntity(registry, uranusEntity, "Uranus");
 		UTIL::CreateOrbiter(registry, uranusEntity, sunEntity, "Uranus");
 
+		// Puck
+		CreateMoon(registry, uranusEntity, UTIL::GetRandomRange(5, 10));
+		// Miranda
+		CreateMoon(registry, uranusEntity, UTIL::GetRandomRange(5, 10));
+		// Ariel
+		CreateMoon(registry, uranusEntity, UTIL::GetRandomRange(5, 10));
+		// Umbriel
+		CreateMoon(registry, uranusEntity, UTIL::GetRandomRange(5, 10));
+		// Titania
+		CreateMoon(registry, uranusEntity, UTIL::GetRandomRange(5, 10));
+		// Oberon
+		CreateMoon(registry, uranusEntity, UTIL::GetRandomRange(5, 10));
 	}
 
 	void SetupNeptune(entt::registry& registry)
@@ -121,6 +150,12 @@ namespace SOL
 		UTIL::CreateModelEntity(registry, neptuneEntity, "Neptune");
 		UTIL::CreateOrbiter(registry, neptuneEntity, sunEntity, "Neptune");
 		 
+		// Proteus
+		CreateMoon(registry, neptuneEntity, UTIL::GetRandomRange(5, 12));
+		// Triton
+		CreateMoon(registry, neptuneEntity, UTIL::GetRandomRange(5, 12));
+		// Nerid
+		CreateMoon(registry, neptuneEntity, UTIL::GetRandomRange(5, 12));
 	}
 
 

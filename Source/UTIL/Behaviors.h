@@ -6,7 +6,8 @@
 #include "../APP/Window.hpp"
 #include "../DRAW/DrawComponents.h"
 #include "../GAME/GameComponents.h"
-#include "../DRAW/UserInterfaceComponents.h"
+#include "../UI/UserInterfaceComponents.h"
+#include "../UTIL/SOLSetup.h"
 
 namespace BEHAVIORS
 {

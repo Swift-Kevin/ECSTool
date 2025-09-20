@@ -11,17 +11,26 @@ namespace UTIL
 	static const std::string PlayerName = "Player";
 	static const std::string Projectile1Name = "Bullet";
 
-	struct Config
+	enum DebugHierarchy { BaseRender, Rotation, Translation, Scale, Combined, SolarSystem };
+
+	COMPONENT(DebugInfo)
+	{
+		DebugHierarchy debugMode;
+		float theta = 0.0f;
+	};
+
+	COMPONENT(Config)
 	{
 		std::shared_ptr<GameConfig> gameConfig = std::make_shared<GameConfig>();
 	};
 
-	struct DeltaTime
+	COMPONENT(DeltaTime)
 	{
-		double dtSec;
+		double dtSec = 0.0f;;
+		double totalTime = 0.0f;
 	};
 
-	struct Input
+	COMPONENT(Input)
 	{
 		GW::INPUT::GController gamePads; // controller support
 		GW::INPUT::GInput immediateInput; // twitch keybaord/mouse
@@ -29,7 +38,7 @@ namespace UTIL
 	};
 
 	/// Method declarations
-	void CreateModelEntity(entt::registry& registry, entt::entity entity, std::string entityName, GW::MATH::GMATRIXF* _transform = nullptr);
+	void CreateModelEntity(entt::registry& registry, entt::entity entity, std::string entityName, GAME::Transform* _transform = nullptr);
 	void SetupCamera(entt::registry& registry, entt::entity entity);
 
 	/// Creates a normalized vector pointing in a random direction on the X/Z plane
@@ -37,16 +46,10 @@ namespace UTIL
 	GW::MATH::GMATRIXF GetRandomTransform(GW::MATH::GVECTORF min, GW::MATH::GVECTORF max);
 
 	float GetRandomRange(float min = 0, float max = 0);
-
 	void PrintVector(GW::MATH::GVECTORF toPrint);
+	void CreateOrbiter(entt::registry& registry, entt::entity orbiter, entt::entity orbiting, std::string iniName = "");
+	GW::MATH::GVECTORF GetRotationFromMatrix(GW::MATH::GMATRIXF matrix);
+	void UpdateWorldPosition(GW::MATH::GMATRIXF parentWorld, GW::MATH::GMATRIXF& childWorld, float radius);
 
-	static void check_vk_result(VkResult err)
-	{
-		if (err == 0)
-			return;
-		fprintf(stderr, "[vulkan] Error: VkResult = %d\n", err);
-		if (err < 0)
-			abort();
-	}
 } // namespace UTIL
 #endif // !UTILITIES_H_

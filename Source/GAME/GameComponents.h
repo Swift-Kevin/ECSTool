@@ -1,48 +1,55 @@
 #ifndef GAME_COMPONENTS_H_
 #define GAME_COMPONENTS_H_
 
+#include "../UTIL/ComponentReflection.h"
+
 namespace GAME
 {
+	enum class ORBIT_AXIS : byte
+	{
+		X,
+		Y,
+		Z,
+	};
+
 	///*** Tags ***///
-	struct Player {};
-	struct Enemy {};
-	struct Bullet {};
-	struct Obstacle {};
-	struct Collidable {};
-	struct ToDestroy {};
-	struct GameOver {};
+	COMPONENT(Sun) {};
+	COMPONENT(Moon) {};
+	COMPONENT(Earth) {};
+	COMPONENT(Player) {};
+	COMPONENT(Obstacle) {};
+	COMPONENT(Collidable) {};
+	COMPONENT(GameManager) {};
 
 	///*** Components ***///
-	struct Transform {
-		GW::MATH::GMATRIXF transform;
-
-		GW::MATH::GVECTORF& Position() { return transform.row4; };
+	COMPONENT(Transform)
+	{
+		GW::MATH::GMATRIXF local = GW::MATH::GIdentityMatrixF;
+		GW::MATH::GMATRIXF world = GW::MATH::GIdentityMatrixF;
 	};
 
-	struct GameManager {
-
+	COMPONENT(Observe) 
+	{
+		float offsetTranslate = 0.0f;
 	};
 
-	struct FiringState {
-		double cooldown = 0;
+	COMPONENT(ParentTransform)
+	{
+		entt::entity parent = entt::null;
 	};
 
-	struct Velocity {
+	COMPONENT(Orbit)
+	{
+		entt::entity parent = entt::null;
+		ORBIT_AXIS axis = ORBIT_AXIS::Y;
+		float angularSpeed = 1.0f;
+		float currentAngle = 0.0f;
+		float currentOffset = 0.0f;
+	};
+
+	COMPONENT(Velocity)
+	{
 		GW::MATH::GVECTORF velocity;
-	};
-
-	struct Health {
-		int hitpoints = 0;
-	};
-
-	struct Shatters {
-		int initialShatterCount = 0;
-		int shatterAmount = 0;
-		float shatterScale = 0.0f;
-	};
-
-	struct Invulnerable {
-		double cooldown = 0;
 	};
 
 }// namespace GAME

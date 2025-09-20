@@ -8,7 +8,7 @@
 #pragma comment(lib, "shaderc_combined.lib") 
 #endif
 
-#include "../DRAW/UserInterfaceComponents.h"
+#include "../UI/UserInterfaceComponents.h"
 
 namespace DRAW
 {
@@ -96,7 +96,7 @@ namespace DRAW
 
 		// Add the 2 buffers, this will create the initial buffers so we can finish building our descriptor set
 		auto& storageBuffer = registry.emplace<VulkanGPUInstanceBuffer>(entity,
-			VulkanGPUInstanceBuffer{ 16 }); // Start with a reasonable size of elements. The Buffer will grow if it needs to later
+			VulkanGPUInstanceBuffer{ 1024 }); // Start with a reasonable size of elements. The Buffer will grow if it needs to later
 		auto& uniformBuffer = registry.emplace<VulkanUniformBuffer>(entity);
 
 		for (int i = 0; i < vulkanRenderer.frameCount; i++)
@@ -400,33 +400,6 @@ namespace DRAW
 
 	}
 
-	static void DumpImGuiState(const char* where)
-	{
-		ImDrawData* dd = ImGui::GetDrawData();
-		ImGuiIO& io = ImGui::GetIO();
-		std::cout << "=== ImGui State Dump (" << where << ") ===\n";
-		std::cout << "DisplaySize: " << io.DisplaySize.x << " x " << io.DisplaySize.y << "\n";
-
-		if (!dd) {
-			std::cout << "DrawData: NULL\n";
-		}
-		else {
-			std::cout << "DrawData->Valid: " << (dd->Valid ? "true" : "false") << "\n";
-			std::cout << "CmdListsCount: " << dd->CmdListsCount << "\n";
-			std::cout << "TotalVtxCount: " << dd->TotalVtxCount << "\n";
-			std::cout << "TotalIdxCount: " << dd->TotalIdxCount << "\n";
-			for (int i = 0; i < dd->CmdListsCount; ++i) {
-				ImDrawList* dl = dd->CmdLists[i];
-				std::cout << "  List " << i << ": Vtx=" << dl->VtxBuffer.Size << " Idx=" << dl->IdxBuffer.Size << " Cmds=" << dl->CmdBuffer.Size << "\n";
-			}
-		}
-
-		// Font info
-		void* tex = (io.Fonts && io.Fonts->TexID) ? io.Fonts->TexID : nullptr;
-		std::cout << "Fonts->TexID: " << tex << "\n";
-		std::cout << "======================================\n";
-	}
-
 	// run this code when a VulkanRenderer component is updated
 	void Update_VulkanRenderer(entt::registry& registry, entt::entity entity)
 	{
@@ -446,7 +419,7 @@ namespace DRAW
 		unsigned int currentBuffer;
 		vulkanRenderer.vlkSurface.GetSwapchainCurrentImage(currentBuffer);
 		vulkanRenderer.vlkSurface.GetCommandBuffer(currentBuffer, (void**)&commandBuffer);
-		
+
 		// Update UI
 		registry.patch<UI::UIData>(registry.group<UI::UIData>().front());
 		ImGui::Render();
@@ -512,7 +485,7 @@ namespace DRAW
 		}
 
 #pragma endregion
-		
+
 		ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), commandBuffer);
 		vulkanRenderer.vlkSurface.EndFrame(true);
 	}
@@ -523,14 +496,20 @@ namespace DRAW
 		auto& vulkanRenderer = registry.get<VulkanRenderer>(entity);
 		// wait till everything has completed
 		vkDeviceWaitIdle(vulkanRenderer.device);
+
+		// ImGui cleanup hates going to a different method
+		ImGui_ImplVulkan_DestroyFontsTexture();
+		ImGui_ImplWin32_Shutdown();
+		ImGui_ImplVulkan_Shutdown();
+		ImGui::DestroyContext();
+		UI::UIData& uiCtx = registry.get<UI::UIData>(registry.group<UI::UIData>().front());
+		vkDestroyDescriptorPool(vulkanRenderer.device, uiCtx.uiDescriptorPool, nullptr);
+
 		// Remove Buffer compontents
 		registry.remove<VulkanIndexBuffer>(entity);
 		registry.remove<VulkanVertexBuffer>(entity);
 		registry.remove<VulkanGPUInstanceBuffer>(entity);
 		registry.remove<VulkanUniformBuffer>(entity);
-
-		UI::UIData& uiCtx = registry.get<UI::UIData>(registry.group<UI::UIData>().front());
-		vkDestroyDescriptorPool(vulkanRenderer.device, uiCtx.uiDescriptorPool, nullptr);
 
 		vkDestroyDescriptorSetLayout(vulkanRenderer.device, vulkanRenderer.descriptorLayout, nullptr);
 		vkDestroyDescriptorPool(vulkanRenderer.device, vulkanRenderer.descriptorPool, nullptr);

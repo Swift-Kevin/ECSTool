@@ -5,7 +5,17 @@
 
 namespace GAME
 {
+	enum class ORBIT_AXIS : byte
+	{
+		X,
+		Y,
+		Z,
+	};
+
 	///*** Tags ***///
+	COMPONENT(Sun) {};
+	COMPONENT(Moon) {};
+	COMPONENT(Earth) {};
 	COMPONENT(Player) {};
 	COMPONENT(Obstacle) {};
 	COMPONENT(Collidable) {};
@@ -14,11 +24,30 @@ namespace GAME
 	///*** Components ***///
 	COMPONENT(Transform)
 	{
-		GW::MATH::GMATRIXF transform;
-		GW::MATH::GVECTORF& Position() { return transform.row4; };
+		GW::MATH::GMATRIXF local = GW::MATH::GIdentityMatrixF;
+		GW::MATH::GMATRIXF world = GW::MATH::GIdentityMatrixF;
 	};
 
-	COMPONENT(Velocity) 
+	COMPONENT(Observe) 
+	{
+		float offsetTranslate = 0.0f;
+	};
+
+	COMPONENT(ParentTransform)
+	{
+		entt::entity parent = entt::null;
+	};
+
+	COMPONENT(Orbit)
+	{
+		entt::entity parent = entt::null;
+		ORBIT_AXIS axis = ORBIT_AXIS::Y;
+		float angularSpeed = 1.0f;
+		float currentAngle = 0.0f;
+		float currentOffset = 0.0f;
+	};
+
+	COMPONENT(Velocity)
 	{
 		GW::MATH::GVECTORF velocity;
 	};

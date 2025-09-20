@@ -6,7 +6,7 @@
 
 namespace GAME
 {
-	void UpdateCameraInput(entt::registry& registry, entt::entity entity, GW::MATH::GVECTORF& out)
+	bool UpdateCameraInput(entt::registry& registry, entt::entity entity, GW::MATH::GVECTORF& out)
 	{
 		auto& input = registry.ctx().get<UTIL::Input>();
 		auto& deltaTime = registry.ctx().get<UTIL::DeltaTime>();
@@ -45,7 +45,7 @@ namespace GAME
 			else if (abs(states.x) <= 0.15f)
 				states.x = 0.0f;
 			else if (abs(states.y) <= 0.15f)
-				 states.y = 0.0f;
+				states.y = 0.0f;
 
 			// Update total pitch
 			out.z = G_PI / 2 * states.y / height + states.z * -camSpeed;
@@ -53,19 +53,23 @@ namespace GAME
 			// Update total yaw
 			out.w = G_PI / 2 * aspectRatio * states.x / width + states.z * camSpeed;
 		}
+
+		float mouse2State = 0.0f;
+		input.immediateInput.GetState(G_BUTTON_RIGHT, mouse2State);
+		return mouse2State;
 	}
 
 	void UpdatePlayerPosition(entt::registry& registry, entt::entity entity, GW::MATH::GVECTORF inputStates)
 	{
 		// Translate Locally on X and Z
 		GW::MATH::GVECTORF deltaPos = { inputStates.x, 0, inputStates.y, 1 };
-		GW::MATH::GMATRIXF& playerTransform = registry.get<Transform>(entity).transform;
+		GW::MATH::GMATRIXF& playerTransform = registry.get<Transform>(entity).local;
 		GW::MATH::GMatrix::TranslateLocalF(playerTransform, deltaPos, playerTransform);
 	}
 
 	void UpdatePlayerLooking(entt::registry& registry, entt::entity entity, GW::MATH::GVECTORF inputStates)
 	{
-		GW::MATH::GMATRIXF& playerTransform = registry.get<Transform>(entity).transform;
+		GW::MATH::GMATRIXF& playerTransform = registry.get<Transform>(entity).local;
 
 		// Pitch
 		GW::MATH::GMATRIXF pitchMatrix = GW::MATH::GIdentityMatrixF;
@@ -89,12 +93,13 @@ namespace GAME
 			return;
 
 		GW::MATH::GVECTORF input = { 0, 0, 0, 0 };
-		UpdateCameraInput(registry, entity, input);
+		if (UpdateCameraInput(registry, entity, input))
+		{
+			UpdatePlayerPosition(registry, entity, input);
+			UpdatePlayerLooking(registry, entity, input);
+		}
 
-		UpdatePlayerPosition(registry, entity, input);
-		UpdatePlayerLooking(registry, entity, input);
-
-		GW::MATH::GMATRIXF& playerTransform = registry.get<Transform>(entity).transform;
+		GW::MATH::GMATRIXF& playerTransform = registry.get<Transform>(entity).local;
 		auto& camera = registry.get<DRAW::Camera>(registry.view<DRAW::Camera>().front());
 		camera.camMatrix = playerTransform;
 	}

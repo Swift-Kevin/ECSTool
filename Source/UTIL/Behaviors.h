@@ -7,6 +7,7 @@
 #include "../DRAW/DrawComponents.h"
 #include "../GAME/GameComponents.h"
 #include "../UI/UserInterfaceComponents.h"
+#include "../UTIL/SOLSetup.h"
 
 namespace BEHAVIORS
 {

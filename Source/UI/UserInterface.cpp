@@ -14,6 +14,24 @@ static LRESULT CALLBACK ImGui_WndProcHook(HWND hWnd, UINT msg, WPARAM wParam, LP
 
 namespace UI
 {
+	void ConstructTransformInpsector(GW::MATH::GMATRIXF& matrix)
+	{
+		auto& rotVec = UTIL::GetRotationFromMatrix(matrix);
+		float* pos[3] = { &matrix.row4.x, &matrix.row4.y, &matrix.row4.z, };
+		float* rot[3] = { &rotVec.x, &rotVec.y, &rotVec.z };
+		float* sca[3] = { &matrix.row1.x, &matrix.row2.y, &matrix.row3.z };
+
+		ImGui::TextUnformatted("Position");
+		ImGui::SameLine();
+		ImGui::DragFloat3("##Position", *pos, 0.1f);
+		ImGui::TextUnformatted("Rotation");
+		ImGui::SameLine();
+		ImGui::DragFloat3("##Rotation", *rot, 0.1f);
+		ImGui::TextUnformatted("Scale");
+		ImGui::SameLine();
+		ImGui::DragFloat3("##Scale", *sca, 0.1f);
+	}
+
 	void Update_UIMenuBar(entt::registry& registry, entt::entity entity)
 	{
 		// Menu Bar
@@ -27,10 +45,10 @@ namespace UI
 
 		UI::UIData& uiData = registry.get<UI::UIData>(entity);
 		ImGui::SetNextWindowPos(ImVec2(0, 0));
-		ImGui::SetNextWindowSize(ImVec2(uiData.io->DisplaySize.x * 0.5f, uiData.io->DisplaySize.y));
+		ImGui::SetNextWindowSize(ImVec2(uiData.io->DisplaySize.x, uiData.io->DisplaySize.y));
 
 		bool open = true;
-		if (ImGui::Begin("TEST", &open, flags))
+		if (ImGui::Begin("##", &open, flags))
 		{
 			if (ImGui::BeginMenuBar())
 			{
@@ -45,6 +63,14 @@ namespace UI
 				if (ImGui::Button("Console"))
 				{
 					uiData.state = (uiData.state != UI::MenuState::Console) ? UI::MenuState::Console : UI::MenuState::MenuBar;
+				}
+				if (ImGui::Button("Hierarchy"))
+				{
+					uiData.state = (uiData.state != UI::MenuState::Hierarchy) ? UI::MenuState::Hierarchy : UI::MenuState::MenuBar;
+				}
+				if (ImGui::Button("Inspector"))
+				{
+					uiData.state = (uiData.state != UI::MenuState::Inspector) ? UI::MenuState::Inspector: UI::MenuState::MenuBar;
 				}
 
 				ImGui::EndMenuBar();
@@ -69,10 +95,31 @@ namespace UI
 			registry.patch<UI::UI_ViewConsole>(entity);
 		}
 		break;
+		case UI::MenuState::Hierarchy:
+		{
+			registry.patch<UI::UI_ViewHierarchy>(entity);
+		}
+		break;
+		case UI::MenuState::Inspector:
+		{
+			registry.patch<UI::UI_Inspector>(entity);
+		}
+		break;
 		default:
 			break;
 		}
 
+		// turn off bitflag for menu bar... since we reuse it
+		flags ^= ImGuiWindowFlags_::ImGuiWindowFlags_MenuBar;
+		ImGui::SetNextWindowPos(ImVec2(uiData.io->DisplaySize.x * 0.8f, uiData.io->DisplaySize.y * 0.95f));
+		ImGui::SetNextWindowSize(ImVec2(uiData.io->DisplaySize.x * 0.2f, uiData.io->DisplaySize.y * 0.1f));
+
+		if (ImGui::Begin("Controls", 0, flags))
+		{
+			ImGui::Text("Hold Mouse 2 - Camera");
+
+		}
+		ImGui::End();
 	}
 
 	void Update_UIViewEntitiesMenu(entt::registry& registry, entt::entity entity)
@@ -86,7 +133,7 @@ namespace UI
 		flags |= ImGuiWindowFlags_::ImGuiWindowFlags_NoBackground;
 
 		UI::UIData& uiData = registry.get<UI::UIData>(entity);
-		ImGui::SetNextWindowPos(ImVec2(0, uiData.io->DisplaySize.y * 0.025));
+		ImGui::SetNextWindowPos(ImVec2(0, uiData.io->DisplaySize.y * 0.03));
 
 		if (ImGui::Begin("Entities", 0, flags))
 		{
@@ -113,7 +160,7 @@ namespace UI
 		flags |= ImGuiWindowFlags_::ImGuiWindowFlags_NoBackground;
 
 		UI::UIData& uiData = registry.get<UI::UIData>(entity);
-		ImGui::SetNextWindowPos(ImVec2(0, uiData.io->DisplaySize.y * 0.025));
+		ImGui::SetNextWindowPos(ImVec2(0, uiData.io->DisplaySize.y * 0.03));
 
 		if (ImGui::Begin("Components", 0, flags))
 		{
@@ -134,6 +181,86 @@ namespace UI
 	void Update_UIViewConsoleMenu(entt::registry& registry, entt::entity entity)
 	{
 		//std::cout << "Updating: Console\n";
+	}
+
+	void Update_UIViewHierarchy(entt::registry& registry, entt::entity entity)
+	{
+		ImGuiWindowFlags flags = {};
+		flags |= ImGuiWindowFlags_::ImGuiWindowFlags_NoMove;
+		flags |= ImGuiWindowFlags_::ImGuiWindowFlags_NoResize;
+		flags |= ImGuiWindowFlags_::ImGuiWindowFlags_NoCollapse;
+		flags |= ImGuiWindowFlags_::ImGuiWindowFlags_NoBackground;
+
+		UI::UIData& uiData = registry.get<UI::UIData>(entity);
+		ImGui::SetNextWindowPos(ImVec2(0, uiData.io->DisplaySize.y * 0.03));
+		ImGui::SetNextWindowSize(ImVec2(uiData.io->DisplaySize.x, uiData.io->DisplaySize.y));
+
+		auto& info = registry.ctx().get<UTIL::DebugInfo>();
+		if (ImGui::Begin("Hierarchy", 0, flags))
+		{
+			if (ImGui::Button("Base Render"))
+			{
+				info.debugMode = UTIL::DebugHierarchy::BaseRender;
+			}
+			if (ImGui::Button("Rotation"))
+			{
+				info.debugMode = UTIL::DebugHierarchy::Rotation;
+			}
+			if (ImGui::Button("Translation"))
+			{
+				info.debugMode = UTIL::DebugHierarchy::Translation;
+			}
+			if (ImGui::Button("Scales"))
+			{
+				info.debugMode = UTIL::DebugHierarchy::Scale;
+			}
+			if (ImGui::Button("Combined"))
+			{
+				info.debugMode = UTIL::DebugHierarchy::Combined;
+			}
+			if (ImGui::Button("Multi Combined"))
+			{
+				info.debugMode = UTIL::DebugHierarchy::SolarSystem;
+			}
+		}
+		ImGui::End();
+	}
+	
+	void Update_UIInspector(entt::registry& registry, entt::entity entity)
+	{
+		ImGuiWindowFlags flags = {};
+		flags |= ImGuiWindowFlags_::ImGuiWindowFlags_NoCollapse;
+		flags |= ImGuiWindowFlags_::ImGuiWindowFlags_NoBackground;
+
+		UI::UIData& uiData = registry.get<UI::UIData>(entity);
+		ImGui::SetNextWindowPos(ImVec2(0, uiData.io->DisplaySize.y * 0.03));
+		ImGui::SetNextWindowSize(ImVec2(200, uiData.io->DisplaySize.y));
+
+		if (ImGui::Begin("##", 0, flags))
+		{
+			ImGui::PushItemWidth(200);
+			GAME::Transform transform = registry.get<GAME::Transform>(registry.view<GAME::Earth>().front());
+			if (ImGui::CollapsingHeader("Earth - World Transform", ImGuiTreeNodeFlags_DefaultOpen)) 
+			{
+				ConstructTransformInpsector(transform.world);
+			}
+			if (ImGui::CollapsingHeader("Earth - Local Transform", ImGuiTreeNodeFlags_DefaultOpen))
+			{
+				ConstructTransformInpsector(transform.local);
+			}
+
+			transform = registry.get<GAME::Transform>(registry.view<GAME::Moon>().front());
+			if (ImGui::CollapsingHeader("Moon - World Transform", ImGuiTreeNodeFlags_DefaultOpen))
+			{
+				ConstructTransformInpsector(transform.world);
+			}
+			if (ImGui::CollapsingHeader("Moon - Local Transform", ImGuiTreeNodeFlags_DefaultOpen))
+			{
+				ConstructTransformInpsector(transform.local);
+			}
+			ImGui::PopItemWidth();
+		}
+		ImGui::End();
 	}
 
 	void Construct_UIContext(entt::registry& registry, entt::entity entity)
@@ -238,6 +365,8 @@ namespace UI
 		registry.emplace<UI::UI_ViewEntites>(entity);
 		registry.emplace<UI::UI_ViewComponents>(entity);
 		registry.emplace<UI::UI_ViewConsole>(entity);
+		registry.emplace<UI::UI_ViewHierarchy>(entity);
+		registry.emplace<UI::UI_Inspector>(entity);
 	}
 
 	void Update_UIContext(entt::registry& registry, entt::entity entity)
@@ -267,6 +396,8 @@ namespace UI
 		registry.on_update<UI::UI_ViewEntites>().connect<Update_UIViewEntitiesMenu>();
 		registry.on_update<UI::UI_ViewComponents>().connect<Update_UIViewComponentsMenu>();
 		registry.on_update<UI::UI_ViewConsole>().connect<Update_UIViewConsoleMenu>();
+		registry.on_update<UI::UI_ViewHierarchy>().connect<Update_UIViewHierarchy>();
+		registry.on_update<UI::UI_Inspector>().connect<Update_UIInspector>();
 
 		// UI Data Component
 		registry.on_construct<UI::UIData>().connect<Construct_UIContext>();

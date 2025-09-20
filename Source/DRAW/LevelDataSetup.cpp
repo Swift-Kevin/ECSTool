@@ -58,9 +58,12 @@ namespace DRAW
 				auto collidableEntity = registry.create();
 				registry.emplace<GAME::Collidable>(collidableEntity);
 				registry.emplace<MeshCollection>(collidableEntity).collider = levelData.levelColliders[_blenderObjects[i].modelIndex];
-				registry.emplace<GAME::Transform>(collidableEntity, levelData.levelTransforms[_blenderObjects[i].transformIndex]);
+
+				GAME::Transform trans = {};
+				trans.local = levelData.levelTransforms[_blenderObjects[i].transformIndex];
+				registry.emplace<GAME::Transform>(collidableEntity, trans);
 				registry.emplace<GAME::Obstacle>(collidableEntity);
-			}			
+			}
 
 			// Iterate through all meshes in model
 			for (int j = 0; j < currentModel.meshCount; j++)

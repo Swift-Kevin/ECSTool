@@ -84,7 +84,7 @@ namespace BEHAVIORS
 	/// <param name="registry">holds all ECS info</param>
 	void UIBehavior(entt::registry& registry)
 	{
-		auto uiEntity = registry.create();		
+		auto uiEntity = registry.create();
 		UI::UIData& uiComp = registry.emplace<UI::UIData>(uiEntity);
 	}
 
@@ -106,29 +106,29 @@ namespace BEHAVIORS
 			GW::MATH::GMatrix::TranslateGlobalF(startingTransform, pos, startingTransform);
 			GW::MATH::GMatrix::RotateYLocalF(startingTransform, G_DEGREE_TO_RADIAN_F(-60), startingTransform);
 			GW::MATH::GMatrix::RotateXLocalF(startingTransform, G_DEGREE_TO_RADIAN_F(15), startingTransform);
-			registry.emplace<GAME::Transform>(playerEntity, startingTransform);
+
+			GAME::Transform trans = {};
+			trans.local = startingTransform;
+			registry.emplace<GAME::Transform>(playerEntity, trans);
 		}
 
 		// Spawn the planets
 		{
 			auto sunEntity = registry.create();
 			UTIL::CreateModelEntity(registry, sunEntity, "Sun");
-			auto mercuryEntity = registry.create();
-			UTIL::CreateModelEntity(registry, mercuryEntity, "Mercury");
-			auto venusEntity = registry.create();
-			UTIL::CreateModelEntity(registry, venusEntity, "Venus");
-			auto earthEntity = registry.create();
-			UTIL::CreateModelEntity(registry, earthEntity, "Earth");
-			auto marsEntity = registry.create();
-			UTIL::CreateModelEntity(registry, marsEntity, "Mars");
-			auto jupiterEntity = registry.create();
-			UTIL::CreateModelEntity(registry, jupiterEntity, "Jupiter");
-			auto saturnEntity = registry.create();
-			UTIL::CreateModelEntity(registry, saturnEntity, "Saturn");
-			auto uranusEntity = registry.create();
-			UTIL::CreateModelEntity(registry, uranusEntity, "Uranus");
-			auto neptuneEntity = registry.create();
-			UTIL::CreateModelEntity(registry, neptuneEntity, "Neptune");
+			registry.emplace<GAME::Sun>(sunEntity);
+		}
+
+		// Setup Planets
+		{
+			SOL::SetupMercury(registry);
+			SOL::SetupVenus(registry);
+			SOL::SetupEarth(registry);
+			SOL::SetupMars(registry);
+			SOL::SetupJupiter(registry);
+			SOL::SetupSaturn(registry);
+			SOL::SetupUranus(registry);
+			SOL::SetupNeptune(registry);
 		}
 
 		// Create Gameplay Entity to manage all gameplay systems
@@ -146,19 +146,30 @@ namespace BEHAVIORS
 	{
 		int closedCount;
 		auto winView = registry.view<APP::Window>();
-		auto& deltaTime = registry.ctx().emplace<UTIL::DeltaTime>().dtSec;
+		auto& time = registry.ctx().emplace<UTIL::DeltaTime>();
 
+		UTIL::DebugInfo& dbg = registry.ctx().emplace<UTIL::DebugInfo>();
+		dbg.debugMode = UTIL::DebugHierarchy::BaseRender;
+		int counter = 0;
 		do
 		{
 			// Set the delta time
 			static auto start = std::chrono::steady_clock::now();
 			double elapsed = std::chrono::duration<double>(std::chrono::steady_clock::now() - start).count();
-
 			start = std::chrono::steady_clock::now();
-			// Cap delta time to min 30 fps.
-			if (elapsed > 1.0 / 30.0) { elapsed = 1.0 / 30.0; }
 
-			deltaTime = elapsed;
+			time.dtSec = elapsed;
+			time.totalTime += elapsed;
+			dbg.theta = std::cos(std::sin(time.totalTime));
+
+			if (counter < 10000)
+			{
+				entt::entity sun = registry.group<GAME::Sun>().front();
+				entt::entity created = SOL::CreateMoon(registry, sun, UTIL::GetRandomRange(-1000, 1000));
+				// override spawned planets.
+				registry.get<GAME::Orbit>(created).angularSpeed = UTIL::GetRandomRange(-0.1, 0.1);
+				counter++;
+			}
 
 			// Update Game
 			auto gameManagerGroup = registry.group<GAME::GameManager>();

@@ -8,6 +8,7 @@
 #include "../GAME/GameComponents.h"
 #include "../UI/UserInterfaceComponents.h"
 #include "../UTIL/SOLSetup.h"
+#include "../APP/ConsoleLog.h"
 
 namespace BEHAVIORS
 {

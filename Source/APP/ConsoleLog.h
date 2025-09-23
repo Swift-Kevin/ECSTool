@@ -1,10 +1,10 @@
 #ifndef LOG_H
 #define LOG_H
-//#include "../UTIL/ComponentReflection.h"
+#include "../UTIL/ComponentReflection.h"
 
 namespace LOG
 {
-	/*enum class LogSeverity : byte { Log, Warning, Error, Debug };
+	enum class LogSeverity : byte { Log, Warning, Error, Debug };
 	static std::string EnumToLabel(LogSeverity _severity);
 
 	struct LogEntry
@@ -13,14 +13,14 @@ namespace LOG
 		std::string content = "";
 	};
 
-	COMPONENT(Logs)
+	struct Logs
 	{
 		std::vector<LogEntry> messages;
 	};
 
 	void InitializeLogSystem(entt::registry& registry);
 
-	void Log(const char* _log, LogSeverity _severity);*/
+	void Log(const char* _log, LogSeverity _severity);
 };
 
 

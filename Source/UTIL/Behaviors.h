@@ -11,6 +11,10 @@
 
 namespace BEHAVIORS
 {
+	// Helper
+	int AddEntites(int numberToAdd = 0);
+	bool CheckAddEntites();
+
 	// Method declarations
 	void GraphicsBehavior(entt::registry& registry);
 	void UIBehavior(entt::registry& registry);

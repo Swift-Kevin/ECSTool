@@ -1,6 +1,7 @@
 #include "../CCL.h"
 #include "../UTIL/Utilities.h"
 #include "../UI/UserInterfaceComponents.h"
+#include "../UTIL/Behaviors.h"
 
 static HWND    winHandle = nullptr;
 static WNDPROC winProc = nullptr;
@@ -263,7 +264,42 @@ namespace UI
 
 		if (ImGui::Begin("Testing Suite", 0, flags))
 		{
-
+			if (ImGui::Button("+10 Entites"))
+			{
+				BEHAVIORS::AddEntites(10);
+			}
+			if (ImGui::Button("+20 Entites"))
+			{
+				BEHAVIORS::AddEntites(20);
+			}
+			if (ImGui::Button("+30 Entites"))
+			{
+				BEHAVIORS::AddEntites(30);
+			}
+			if (ImGui::Button("+50 Entites"))
+			{
+				BEHAVIORS::AddEntites(50);
+			}
+			if (ImGui::Button("+100 Entites"))
+			{
+				BEHAVIORS::AddEntites(100);
+			}
+			if (ImGui::Button("+500 Entites"))
+			{
+				BEHAVIORS::AddEntites(500);
+			}
+			if (ImGui::Button("+1,000 Entites"))
+			{
+				BEHAVIORS::AddEntites(1000);
+			}
+			if (ImGui::Button("+10,000 Entites"))
+			{
+				BEHAVIORS::AddEntites(10000);
+			}
+			if (ImGui::Button("+25,000 Entites"))
+			{
+				BEHAVIORS::AddEntites(25000);
+			}
 		}
 		ImGui::End();
 	}

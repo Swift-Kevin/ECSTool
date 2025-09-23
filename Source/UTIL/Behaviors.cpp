@@ -2,6 +2,13 @@
 
 namespace BEHAVIORS
 {
+	int AddEntites(int numberToAdd)
+	{
+		static int entityAdder = 0;
+		entityAdder += numberToAdd;
+		return entityAdder;
+	}
+
 	/// <summary>
 	/// Loads all Graphics related data
 	/// </summary>
@@ -150,7 +157,7 @@ namespace BEHAVIORS
 
 		UTIL::DebugInfo& dbg = registry.ctx().emplace<UTIL::DebugInfo>();
 		dbg.debugMode = UTIL::DebugHierarchy::BaseRender;
-		int counter = 0;
+
 		do
 		{
 			// Set the delta time
@@ -162,14 +169,15 @@ namespace BEHAVIORS
 			time.totalTime += elapsed;
 			dbg.theta = std::cos(std::sin(time.totalTime));
 
-			//if (counter < 10000)
-			//{
-			//	entt::entity sun = registry.group<GAME::Sun>().front();
-			//	entt::entity created = SOL::CreateMoon(registry, sun, UTIL::GetRandomRange(-1000, 1000));
-			//	// override spawned planets.
-			//	registry.get<GAME::Orbit>(created).angularSpeed = UTIL::GetRandomRange(-0.1, 0.1);
-			//	counter++;
-			//}
+			while (AddEntites() > 0)
+			{
+				entt::entity sun = registry.group<GAME::Sun>().front();
+				entt::entity created = SOL::CreateMoon(registry, sun, UTIL::GetRandomRange(-1000, 1000));
+				// override spawned planets.
+				registry.get<GAME::Orbit>(created).angularSpeed = UTIL::GetRandomRange(-0.1, 0.1);
+
+				AddEntites(-1);
+			}
 
 			// Update Game
 			auto gameManagerGroup = registry.group<GAME::GameManager>();

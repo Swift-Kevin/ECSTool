@@ -188,6 +188,16 @@ namespace BEHAVIORS
 				}
 				else
 				{
+					// static so i can reuse the mem addr
+					static int secondCounter = 0;
+					if ((time.totalTime > 2.0 && time.totalTime < 15.0f) && (int)time.totalTime != secondCounter)
+					{
+						secondCounter++;
+						LOG::LogDebug("Example Debug Log");
+						LOG::LogWarning("Example Warning Log");
+						LOG::LogError("Example Error Log");
+					}
+
 					registry.patch<APP::Window>(entity);
 				}
 			}

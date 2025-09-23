@@ -4,12 +4,11 @@
 #include "GameConfig.h"
 #include "../DRAW/DrawComponents.h"
 #include "../GAME/GameComponents.h"
+#include "../APP/ConsoleLog.h"
 
 namespace UTIL
 {
-	static const std::string Enemy1Name = "Enemy1";
 	static const std::string PlayerName = "Player";
-	static const std::string Projectile1Name = "Bullet";
 
 	enum DebugHierarchy { BaseRender, Rotation, Translation, Scale, Combined, SolarSystem };
 

@@ -31,7 +31,7 @@ namespace APP
 
 		// If we get a close window event, emplace a WindowClosed component
 		auto& win = registry.get<GW::SYSTEM::GWindow>(entity);
-		
+
 		std::string name = std::to_string(1 / registry.ctx().get<UTIL::DeltaTime>().dtSec);
 		int numEntites = registry.group<GAME::Transform>().size();
 		name = "Count: " + std::to_string(numEntites) + " FPS: " + name;

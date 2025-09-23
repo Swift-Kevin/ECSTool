@@ -39,17 +39,17 @@ namespace UI
 		// Menu Bar
 		if (ImGui::BeginMainMenuBar())
 		{
-			if (ImGui::Button("Entites"))
+			uiData.menuBarSize = ImGui::GetWindowSize();
+
+			if (ImGui::MenuItem("Entites"))
 			{
-				uiData.state = (uiData.state != UI::MenuState::Entities) ? UI::MenuState::Entities : UI::MenuState::MenuBar;
+				LOG::Log("Opening Entites Menu");
+				uiData.state = UI::MenuState::Entities;
 			}
-			if (ImGui::Button("Components"))
+			if (ImGui::MenuItem("Components"))
 			{
-				uiData.state = (uiData.state != UI::MenuState::Components) ? UI::MenuState::Components : UI::MenuState::MenuBar;
-			}
-			if (ImGui::Button("Console"))
-			{
-				uiData.state = (uiData.state != UI::MenuState::Console) ? UI::MenuState::Console : UI::MenuState::MenuBar;
+				LOG::Log("Opening Components Menu");
+				uiData.state = UI::MenuState::Components;
 			}
 			if (ImGui::BeginMenu("Hierarchy"))
 			{
@@ -61,44 +61,28 @@ namespace UI
 				if (ImGui::MenuItem("Scales")) { info.debugMode = UTIL::DebugHierarchy::Scale; }
 				if (ImGui::MenuItem("Combined")) { info.debugMode = UTIL::DebugHierarchy::Combined; }
 				if (ImGui::MenuItem("Multi Combined")) { info.debugMode = UTIL::DebugHierarchy::SolarSystem; }
-				uiData.state = (uiData.state != UI::MenuState::Hierarchy) ? UI::MenuState::Hierarchy : UI::MenuState::MenuBar;
 
 				ImGui::EndMenu();
 			}
 		}
 		ImGui::EndMainMenuBar();
 
-		switch (uiData.state)
-		{
-		case UI::MenuState::Entities:
-		{
+		if (uiData.state == UI::MenuState::Entities)
 			registry.patch<UI::UI_ViewEntites>(entity);
-		}
-		break;
-		case UI::MenuState::Components:
-		{
+		else if (uiData.state == UI::MenuState::Components)
 			registry.patch<UI::UI_ViewComponents>(entity);
-		}
-		break;
-		case UI::MenuState::Console:
-		{
-			registry.patch<UI::UI_ViewConsole>(entity);
-		}
-		break;
-		default:
-			break;
-		}
-		registry.patch<UI::UI_Inspector>(entity);
 
-		ImGui::SetNextWindowPos(ImVec2(uiData.io->DisplaySize.x * 0.8f, uiData.io->DisplaySize.y * 0.95f));
-		ImGui::SetNextWindowSize(ImVec2(uiData.io->DisplaySize.x * 0.2f, uiData.io->DisplaySize.y * 0.1f));
+		registry.patch<UI::UI_Inspector>(entity);
+		registry.patch<UI::UI_ViewConsole>(entity);
+
+		ImGui::SetNextWindowPos(ImVec2(uiData.io->DisplaySize.x * 0.2f, uiData.menuBarSize.y));
+		ImGui::SetNextWindowSize(ImVec2(175, 10));
 
 		ImGuiWindowFlags flags = {};
 		flags |= ImGuiWindowFlags_::ImGuiWindowFlags_NoResize;
 		flags |= ImGuiWindowFlags_::ImGuiWindowFlags_NoMove;
 		flags |= ImGuiWindowFlags_::ImGuiWindowFlags_NoCollapse;
 		flags |= ImGuiWindowFlags_::ImGuiWindowFlags_NoTitleBar;
-		flags |= ImGuiWindowFlags_::ImGuiWindowFlags_NoBackground;
 
 		if (ImGui::Begin("##Controls", 0, flags))
 		{
@@ -113,14 +97,16 @@ namespace UI
 		flags |= ImGuiWindowFlags_::ImGuiWindowFlags_NoMove;
 		flags |= ImGuiWindowFlags_::ImGuiWindowFlags_NoCollapse;
 		flags |= ImGuiWindowFlags_::ImGuiWindowFlags_NoTitleBar;
-		flags |= ImGuiWindowFlags_::ImGuiWindowFlags_NoBackground;
+		flags |= ImGuiWindowFlags_::ImGuiWindowFlags_NoResize;
 
 		UI::UIData& uiData = registry.get<UI::UIData>(entity);
-		ImGui::SetNextWindowPos(ImVec2(0, uiData.io->DisplaySize.y * 0.03));
+		ImGui::SetNextWindowPos(ImVec2(0, uiData.menuBarSize.y));
+		ImGui::SetNextWindowSize(ImVec2(uiData.io->DisplaySize.x * 0.2f, uiData.io->DisplaySize.y - uiData.menuBarSize.y));
 
 		if (ImGui::Begin("Entities", 0, flags))
 		{
-			if (ImGui::BeginListBox("##", ImVec2(uiData.io->DisplaySize.x * 0.25f, uiData.io->DisplaySize.y * 0.9)))
+			ImVec2 availableSpace = ImGui::GetContentRegionAvail();
+			if (ImGui::BeginListBox("##", availableSpace))
 			{
 				for (auto entity : registry.view<GAME::Transform>())
 				{
@@ -138,18 +124,20 @@ namespace UI
 
 	void Update_UIViewComponentsMenu(entt::registry& registry, entt::entity entity)
 	{
-		//std::cout << "Updating: Components\n";
 		ImGuiWindowFlags flags = {};
 		flags |= ImGuiWindowFlags_::ImGuiWindowFlags_NoMove;
 		flags |= ImGuiWindowFlags_::ImGuiWindowFlags_NoCollapse;
-		flags |= ImGuiWindowFlags_::ImGuiWindowFlags_NoBackground;
+		flags |= ImGuiWindowFlags_::ImGuiWindowFlags_NoTitleBar;
+		flags |= ImGuiWindowFlags_::ImGuiWindowFlags_NoResize;
 
 		UI::UIData& uiData = registry.get<UI::UIData>(entity);
-		ImGui::SetNextWindowPos(ImVec2(0, uiData.io->DisplaySize.y * 0.03));
+		ImGui::SetNextWindowPos(ImVec2(0, uiData.menuBarSize.y));
+		ImGui::SetNextWindowSize(ImVec2(uiData.io->DisplaySize.x * 0.2f, uiData.io->DisplaySize.y - uiData.menuBarSize.y));
 
 		if (ImGui::Begin("Components", 0, flags))
 		{
-			if (ImGui::BeginListBox("##", ImVec2(uiData.io->DisplaySize.x * 0.25f, uiData.io->DisplaySize.y * 0.9)))
+			ImVec2 availableSpace = ImGui::GetContentRegionAvail();
+			if (ImGui::BeginListBox("##", availableSpace))
 			{
 				auto& map = RegisteredComponents();
 				for (auto [compName, compIdx] : map)
@@ -165,18 +153,74 @@ namespace UI
 
 	void Update_UIViewConsoleMenu(entt::registry& registry, entt::entity entity)
 	{
-		//std::cout << "Updating: Console\n";
+		ImGuiWindowFlags flags = {};
+		flags |= ImGuiWindowFlags_::ImGuiWindowFlags_NoMove;
+		flags |= ImGuiWindowFlags_::ImGuiWindowFlags_NoCollapse;
+		flags |= ImGuiWindowFlags_::ImGuiWindowFlags_NoTitleBar;
+		flags |= ImGuiWindowFlags_::ImGuiWindowFlags_NoResize;
+
+		UI::UIData& uiData = registry.get<UI::UIData>(entity);
+		ImGui::SetNextWindowPos(ImVec2(uiData.io->DisplaySize.x * 0.2, uiData.io->DisplaySize.y * 0.75));
+		ImGui::SetNextWindowSize(ImVec2(uiData.io->DisplaySize.x * 0.6, uiData.io->DisplaySize.y * 0.25));
+
+		static bool showLog = true;
+		static bool showWarning = true;
+		static bool showError = true;
+		static bool showDebug = true;
+
+		if (ImGui::Begin("Console", 0, flags))
+		{
+			ImGui::Text("Filter: ");
+			ImGui::SameLine();
+			ImGui::Checkbox("Debug", &showDebug);
+			ImGui::SameLine();
+			ImGui::Checkbox("Warning", &showWarning);
+			ImGui::SameLine();
+			ImGui::Checkbox("Error", &showError);
+
+			ImVec2 availableSpace = ImGui::GetContentRegionAvail();
+			if (ImGui::BeginListBox("##", availableSpace))
+			{
+				std::vector<LOG::LogEntry> logs = registry.ctx().get<LOG::Logs>().messages;
+
+				for (auto log : logs)
+				{
+					bool showMsg = LOG::ShowMessageStatus(showDebug, showWarning, showError, log.severity);
+
+					if (showMsg)
+					{
+						ImVec4 color = ImVec4(1, 1, 1, 1);
+						if (log.severity == LOG::LogSeverity::Warning)
+						{
+							color = ImVec4(1, 1, 0, 1);
+						}
+						else if (log.severity == LOG::LogSeverity::Error)
+						{
+							color = ImVec4(1, 0, 0, 1);
+						}
+
+						ImGui::TextColored(color, "%s", LOG::EnumToLabel(log.severity));
+						ImGui::SameLine();
+						ImGui::Text(log.content.c_str());
+					}
+				}
+				ImGui::EndListBox();
+			}
+		}
+		ImGui::End();
 	}
 
 	void Update_UIInspector(entt::registry& registry, entt::entity entity)
 	{
 		ImGuiWindowFlags flags = {};
+		flags |= ImGuiWindowFlags_::ImGuiWindowFlags_NoMove;
 		flags |= ImGuiWindowFlags_::ImGuiWindowFlags_NoCollapse;
-		flags |= ImGuiWindowFlags_::ImGuiWindowFlags_NoBackground;
+		flags |= ImGuiWindowFlags_::ImGuiWindowFlags_NoTitleBar;
+		flags |= ImGuiWindowFlags_::ImGuiWindowFlags_NoResize;
 
 		UI::UIData& uiData = registry.get<UI::UIData>(entity);
-		ImGui::SetNextWindowPos(ImVec2(uiData.io->DisplaySize.x - 300, uiData.io->DisplaySize.y * 0.03));
-		ImGui::SetNextWindowSize(ImVec2(300, uiData.io->DisplaySize.y));
+		ImGui::SetNextWindowPos(ImVec2(uiData.io->DisplaySize.x - (uiData.io->DisplaySize.x * 0.2), uiData.menuBarSize.y));
+		ImGui::SetNextWindowSize(ImVec2(uiData.io->DisplaySize.x * 0.2, uiData.io->DisplaySize.y));
 
 		if (ImGui::Begin("Inspector", 0, flags))
 		{
@@ -322,7 +366,7 @@ namespace UI
 
 		ImGui::NewFrame();
 		// For referencing documentation:
-		ImGui::ShowDemoWindow();
+		//ImGui::ShowDemoWindow();
 
 		registry.patch<UI::UI_MenuBar>(entity);
 	}

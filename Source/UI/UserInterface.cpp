@@ -74,21 +74,25 @@ namespace UI
 
 		registry.patch<UI::UI_Inspector>(entity);
 		registry.patch<UI::UI_ViewConsole>(entity);
+		registry.patch<UI::UI_StressTest>(entity);
 
-		ImGui::SetNextWindowPos(ImVec2(uiData.io->DisplaySize.x * 0.2f, uiData.menuBarSize.y));
-		ImGui::SetNextWindowSize(ImVec2(175, 10));
-
-		ImGuiWindowFlags flags = {};
-		flags |= ImGuiWindowFlags_::ImGuiWindowFlags_NoResize;
-		flags |= ImGuiWindowFlags_::ImGuiWindowFlags_NoMove;
-		flags |= ImGuiWindowFlags_::ImGuiWindowFlags_NoCollapse;
-		flags |= ImGuiWindowFlags_::ImGuiWindowFlags_NoTitleBar;
-
-		if (ImGui::Begin("##Controls", 0, flags))
+		// Camera Text
 		{
-			ImGui::Text("Hold Mouse 2 - Camera");
+			ImGui::SetNextWindowPos(ImVec2(uiData.io->DisplaySize.x * 0.2f, uiData.menuBarSize.y));
+			ImGui::SetNextWindowSize(ImVec2(175, 10));
+
+			ImGuiWindowFlags flags = {};
+			flags |= ImGuiWindowFlags_::ImGuiWindowFlags_NoResize;
+			flags |= ImGuiWindowFlags_::ImGuiWindowFlags_NoMove;
+			flags |= ImGuiWindowFlags_::ImGuiWindowFlags_NoCollapse;
+			flags |= ImGuiWindowFlags_::ImGuiWindowFlags_NoTitleBar;
+
+			if (ImGui::Begin("##Controls", 0, flags))
+			{
+				ImGui::Text("Hold Mouse 2 - Camera");
+			}
+			ImGui::End();
 		}
-		ImGui::End();
 	}
 
 	void Update_UIViewEntitiesMenu(entt::registry& registry, entt::entity entity)
@@ -156,7 +160,6 @@ namespace UI
 		ImGuiWindowFlags flags = {};
 		flags |= ImGuiWindowFlags_::ImGuiWindowFlags_NoMove;
 		flags |= ImGuiWindowFlags_::ImGuiWindowFlags_NoCollapse;
-		flags |= ImGuiWindowFlags_::ImGuiWindowFlags_NoTitleBar;
 		flags |= ImGuiWindowFlags_::ImGuiWindowFlags_NoResize;
 
 		UI::UIData& uiData = registry.get<UI::UIData>(entity);
@@ -204,6 +207,8 @@ namespace UI
 						ImGui::Text(log.content.c_str());
 					}
 				}
+
+				ImGui::SetScrollHereY(1);
 				ImGui::EndListBox();
 			}
 		}
@@ -215,12 +220,11 @@ namespace UI
 		ImGuiWindowFlags flags = {};
 		flags |= ImGuiWindowFlags_::ImGuiWindowFlags_NoMove;
 		flags |= ImGuiWindowFlags_::ImGuiWindowFlags_NoCollapse;
-		flags |= ImGuiWindowFlags_::ImGuiWindowFlags_NoTitleBar;
 		flags |= ImGuiWindowFlags_::ImGuiWindowFlags_NoResize;
 
 		UI::UIData& uiData = registry.get<UI::UIData>(entity);
 		ImGui::SetNextWindowPos(ImVec2(uiData.io->DisplaySize.x - (uiData.io->DisplaySize.x * 0.2), uiData.menuBarSize.y));
-		ImGui::SetNextWindowSize(ImVec2(uiData.io->DisplaySize.x * 0.2, uiData.io->DisplaySize.y));
+		ImGui::SetNextWindowSize(ImVec2(uiData.io->DisplaySize.x * 0.2, uiData.io->DisplaySize.y * 0.25));
 
 		if (ImGui::Begin("Inspector", 0, flags))
 		{
@@ -242,6 +246,24 @@ namespace UI
 			{
 				ImGui::Text("No Entity Selected");
 			}
+		}
+		ImGui::End();
+	}
+
+	void Update_UIStressTest(entt::registry& registry, entt::entity entity)
+	{
+		ImGuiWindowFlags flags = {};
+		flags |= ImGuiWindowFlags_::ImGuiWindowFlags_NoMove;
+		flags |= ImGuiWindowFlags_::ImGuiWindowFlags_NoCollapse;
+		flags |= ImGuiWindowFlags_::ImGuiWindowFlags_NoResize;
+
+		UI::UIData& uiData = registry.get<UI::UIData>(entity);
+		ImGui::SetNextWindowPos(ImVec2(uiData.io->DisplaySize.x - (uiData.io->DisplaySize.x * 0.2), (uiData.io->DisplaySize.y * 0.25) + uiData.menuBarSize.y));
+		ImGui::SetNextWindowSize(ImVec2(uiData.io->DisplaySize.x * 0.2, uiData.io->DisplaySize.y * 0.75));
+
+		if (ImGui::Begin("Testing Suite", 0, flags))
+		{
+
 		}
 		ImGui::End();
 	}
@@ -349,6 +371,7 @@ namespace UI
 		registry.emplace<UI::UI_ViewComponents>(entity);
 		registry.emplace<UI::UI_ViewConsole>(entity);
 		registry.emplace<UI::UI_Inspector>(entity);
+		registry.emplace<UI::UI_StressTest>(entity);
 	}
 
 	void Update_UIContext(entt::registry& registry, entt::entity entity)
@@ -379,6 +402,7 @@ namespace UI
 		registry.on_update<UI::UI_ViewComponents>().connect<Update_UIViewComponentsMenu>();
 		registry.on_update<UI::UI_ViewConsole>().connect<Update_UIViewConsoleMenu>();
 		registry.on_update<UI::UI_Inspector>().connect<Update_UIInspector>();
+		registry.on_update<UI::UI_StressTest>().connect<Update_UIStressTest>();
 
 		// UI Data Component
 		registry.on_construct<UI::UIData>().connect<Construct_UIContext>();

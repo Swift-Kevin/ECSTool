@@ -15,6 +15,7 @@ namespace UI
 	COMPONENT(UI_ViewEntites) {};
 	COMPONENT(UI_ViewComponents) {};
 	COMPONENT(UI_ViewConsole) {};
+	COMPONENT(UI_StressTest) {};
 
 	/* Components */
 	COMPONENT(UIData)

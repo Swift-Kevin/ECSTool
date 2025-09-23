@@ -21,7 +21,6 @@ namespace UI
 	COMPONENT(UI_ViewEntites) {};
 	COMPONENT(UI_ViewComponents) {};
 	COMPONENT(UI_ViewConsole) {};
-	COMPONENT(UI_ViewHierarchy) {};
 
 	/* Components */
 	COMPONENT(UIData)
@@ -29,6 +28,7 @@ namespace UI
 		VkDescriptorPool uiDescriptorPool;
 		MenuState state = MenuState::MenuBar;
 		ImGuiIO* io = nullptr;
+		entt::entity inspectingEntity = entt::null;
 	};
 
 } // namespace UI

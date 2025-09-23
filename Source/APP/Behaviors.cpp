@@ -162,14 +162,14 @@ namespace BEHAVIORS
 			time.totalTime += elapsed;
 			dbg.theta = std::cos(std::sin(time.totalTime));
 
-			if (counter < 10000)
-			{
-				entt::entity sun = registry.group<GAME::Sun>().front();
-				entt::entity created = SOL::CreateMoon(registry, sun, UTIL::GetRandomRange(-1000, 1000));
-				// override spawned planets.
-				registry.get<GAME::Orbit>(created).angularSpeed = UTIL::GetRandomRange(-0.1, 0.1);
-				counter++;
-			}
+			//if (counter < 10000)
+			//{
+			//	entt::entity sun = registry.group<GAME::Sun>().front();
+			//	entt::entity created = SOL::CreateMoon(registry, sun, UTIL::GetRandomRange(-1000, 1000));
+			//	// override spawned planets.
+			//	registry.get<GAME::Orbit>(created).angularSpeed = UTIL::GetRandomRange(-0.1, 0.1);
+			//	counter++;
+			//}
 
 			// Update Game
 			auto gameManagerGroup = registry.group<GAME::GameManager>();

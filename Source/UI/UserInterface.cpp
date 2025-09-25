@@ -167,7 +167,6 @@ namespace UI
 		ImGui::SetNextWindowPos(ImVec2(uiData.io->DisplaySize.x * 0.2, uiData.io->DisplaySize.y * 0.75));
 		ImGui::SetNextWindowSize(ImVec2(uiData.io->DisplaySize.x * 0.6, uiData.io->DisplaySize.y * 0.25));
 
-		static bool showLog = true;
 		static bool showWarning = true;
 		static bool showError = true;
 		static bool showDebug = true;
@@ -264,6 +263,16 @@ namespace UI
 
 		if (ImGui::Begin("Testing Suite", 0, flags))
 		{
+			if (ImGui::Button("Clear Extra Entities"))
+			{
+				auto added = registry.view<GAME::StressTestAddition>();
+
+				for (auto& ent : added)
+				{
+					registry.destroy(ent);
+				}
+			}
+
 			if (ImGui::Button("+10 Entites"))
 			{
 				BEHAVIORS::AddEntites(10);

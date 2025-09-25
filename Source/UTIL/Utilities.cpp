@@ -90,8 +90,7 @@ namespace UTIL
 
 	float GetRandomRange(float min, float max)
 	{
-		float t = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
-		return min + t * (max - min);
+		return min + ((float)rand()) / (((float)RAND_MAX / (max - min)));
 	}
 
 	void PrintVector(GW::MATH::GVECTORF toPrint)
@@ -148,11 +147,12 @@ namespace UTIL
 		//return GW::MATH::GVECTORF{ roll, pitch, yaw };
 	}
 
-	GW::MATH::GVECTORF RandomPointInCircle(float radius)
+	GW::MATH::GVECTORF RandomPointInCircle(float radius, float heightModifier = 0)
 	{
 		float angle = GetRandomRange(0, 1) * 2.0f * G_PI_F;
-		float r = radius * std::sqrt(GetRandomRange(0, 1));
-		return { r * std::cos(angle), 0, r * std::sin(angle) };
+		float y = heightModifier == 0 ? 0 : GetRandomRange(-heightModifier, heightModifier);
+
+		return { radius * std::cos(angle), y, radius * std::sin(angle) };
 	}
 
 	void UpdateWorldPosition(GW::MATH::GMATRIXF parentWorld, GW::MATH::GMATRIXF& childWorld, float radius)

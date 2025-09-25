@@ -18,7 +18,6 @@ struct ComponentRegistry
 	{
 		auto& map = RegisteredComponents();
 		auto [tupl, inserted] = map.try_emplace(name, typeid(T));
-		// Check to make sure that its not already emplaced so we don't write it out again.
 		if (inserted)
 		{
 			std::cout << "Registered component: " << name << "\n";

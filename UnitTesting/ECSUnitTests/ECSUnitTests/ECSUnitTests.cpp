@@ -17,34 +17,64 @@ namespace ECSUnitTests
 		{
 			/*
 				Testing: Can users use both Log and Log Debug
-				Verify: Severity and Message are equivalent.
+				Verify: Severity (Debug) and Message are equivalent.
 			*/
 
-			entt::registry registry;
 			// initialize info
+			entt::registry registry;
 			{
 				CCL::InitializeComponentLogic(registry);
 				registry.ctx().emplace<LOG::Logs>();
 				LOG::InitializeLogSystem(registry);
 			}
 
+			// Test Info
 			std::string logMsg = "Example Log Message - TEST LOG DEBUG LEVEL";
 			LOG::Log(logMsg.c_str());
 			LOG::LogDebug(logMsg.c_str());
-			LOG::Logs& logComponent = registry.ctx().get<LOG::Logs>();
 
-			LOG::LogEntry& baseLogCall = logComponent.messages[0];
-			LOG::LogEntry& altLogCall = logComponent.messages[1];
-			
-			// Verify message content is the same
-			Assert::AreEqual(baseLogCall.content, altLogCall.content);
-			// Verify severity level is the same
-			Assert::AreEqual((int)baseLogCall.severity, (int)altLogCall.severity);
+			// Validate Data
+			{
+				LOG::Logs& logComponent = registry.ctx().get<LOG::Logs>();
+				LOG::LogEntry& baseLogCall = logComponent.messages[0];
+				LOG::LogEntry& altLogCall = logComponent.messages[1];
+
+				// Verify message content is the same
+				Assert::AreEqual(baseLogCall.content, altLogCall.content);
+				// Verify severity level is the same
+				Assert::AreEqual((int)baseLogCall.severity, (int)altLogCall.severity);
+			}
 		}
 
 		TEST_METHOD(CHECK_LOGGER_WARNING)
 		{
-			Assert::AreEqual(0, 0);
+			/*
+				Testing: Can users use both Log and Log Warning
+				Verify: Severity (Warning) and Message are equivalent.
+			*/
+
+			// initialize info
+			entt::registry registry;
+			{
+				CCL::InitializeComponentLogic(registry);
+				registry.ctx().emplace<LOG::Logs>();
+				LOG::InitializeLogSystem(registry);
+			}
+
+			// Test Info
+			std::string logMsg = "Example Log Message - TEST LOG WARNING LEVEL";
+			LOG::Log(logMsg.c_str(), LOG::LogSeverity::Warning);
+			LOG::LogWarning(logMsg.c_str());
+
+			// Validate Data
+			{
+				LOG::Logs& logComponent = registry.ctx().get<LOG::Logs>();
+				LOG::LogEntry& baseLogCall = logComponent.messages[0];
+				LOG::LogEntry& altLogCall = logComponent.messages[1];
+
+				Assert::AreEqual(baseLogCall.content, altLogCall.content);
+				Assert::AreEqual((int)baseLogCall.severity, (int)altLogCall.severity);
+			}
 		}
 
 		TEST_METHOD(CHECK_LOGGER_ERROR)

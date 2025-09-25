@@ -1,0 +1,27 @@
+[Tue Aug 26 17:48:07 2025] ThreadID[5092]	[EVENT]	LOADING GAME LEVEL [DATA ORIENTED]
+[Tue Aug 26 17:48:07 2025] ThreadID[5092]	[MESSAGE]	Begin Reading Game Level Text File.
+[Tue Aug 26 17:48:07 2025] ThreadID[5092]	[MESSAGE]	Bullet.h2b
+[Tue Aug 26 17:48:07 2025] ThreadID[5092]	[INFO]	Boundary: Left -0.554330 Right 0.589906 Bottom 1.103265 Top 2.103265 Near -0.580944 Far 0.580943
+[Tue Aug 26 17:48:07 2025] ThreadID[5092]	[MESSAGE]	Cactus.h2b
+[Tue Aug 26 17:48:07 2025] ThreadID[5092]	[INFO]	Boundary: Left -4.622127 Right 4.622127 Bottom 0.000033 Top 10.657980 Near -1.911183 Far 1.915005
+[Tue Aug 26 17:48:07 2025] ThreadID[5092]	[MESSAGE]	Ground.h2b
+[Tue Aug 26 17:48:07 2025] ThreadID[5092]	[INFO]	Boundary: Left -25.000000 Right 25.000000 Bottom 0.000000 Top 0.000000 Near -25.000000 Far 25.000000
+[Tue Aug 26 17:48:07 2025] ThreadID[5092]	[MESSAGE]	Turtle.h2b
+[Tue Aug 26 17:48:07 2025] ThreadID[5092]	[INFO]	Boundary: Left -0.967202 Right 0.989394 Bottom -0.048975 Top 1.761221 Near -1.741199 Far 2.351105
+[Tue Aug 26 17:48:07 2025] ThreadID[5092]	[MESSAGE]	Wall.h2b
+[Tue Aug 26 17:48:07 2025] ThreadID[5092]	[INFO]	Boundary: Left -0.250000 Right 0.250000 Bottom -1.250000 Top 1.250000 Near -25.000000 Far 25.000000
+[Tue Aug 26 17:48:07 2025] ThreadID[5092]	[MESSAGE]	Wall.h2b
+[Tue Aug 26 17:48:07 2025] ThreadID[5092]	[INFO]	Boundary: Left -0.250000 Right 0.250000 Bottom -1.250000 Top 1.250000 Near -25.000000 Far 25.000000
+[Tue Aug 26 17:48:07 2025] ThreadID[5092]	[MESSAGE]	Wall.h2b
+[Tue Aug 26 17:48:07 2025] ThreadID[5092]	[INFO]	Boundary: Left -0.250000 Right 0.250000 Bottom -1.250000 Top 1.250000 Near -25.000000 Far 25.000000
+[Tue Aug 26 17:48:07 2025] ThreadID[5092]	[MESSAGE]	Wall.h2b
+[Tue Aug 26 17:48:07 2025] ThreadID[5092]	[INFO]	Boundary: Left -0.250000 Right 0.250000 Bottom -1.250000 Top 1.250000 Near -25.000000 Far 25.000000
+[Tue Aug 26 17:48:07 2025] ThreadID[5092]	[MESSAGE]	Game Level File Reading Complete.
+[Tue Aug 26 17:48:07 2025] ThreadID[5092]	[MESSAGE]	Begin Importing .H2B File Data.
+[Tue Aug 26 17:48:07 2025] ThreadID[5092]	[INFO]	H2B Imported: Bullet.h2b
+[Tue Aug 26 17:48:07 2025] ThreadID[5092]	[INFO]	H2B Imported: Cactus.h2b
+[Tue Aug 26 17:48:07 2025] ThreadID[5092]	[INFO]	H2B Imported: Ground.h2b
+[Tue Aug 26 17:48:07 2025] ThreadID[5092]	[INFO]	H2B Imported: Turtle.h2b
+[Tue Aug 26 17:48:07 2025] ThreadID[5092]	[INFO]	H2B Imported: Wall.h2b
+[Tue Aug 26 17:48:07 2025] ThreadID[5092]	[MESSAGE]	Importing of .H2B File Data Complete.
+[Tue Aug 26 17:48:07 2025] ThreadID[5092]	[EVENT]	GAME LEVEL WAS LOADED TO CPU [DATA ORIENTED]

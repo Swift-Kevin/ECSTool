@@ -28,3 +28,5 @@ CMakeCache.txt
 CMakeFiles/
 cmake_install.cmake
 Makefile
+/UnitTesting/ECSUnitTests/.vs
+/UnitTesting/ECSUnitTests/ECSUnitTests/x64

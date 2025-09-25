@@ -32,8 +32,6 @@ namespace GAME
 
 		for (auto [entity, transform, orbit, parentEntity] : transforms.each())
 		{
-			observeChange = registry.any_of<GAME::Observe>(entity);
-
 			auto& child = registry.get<Transform>(entity);
 			auto parent = registry.get<Transform>(parentEntity.parent);
 
@@ -95,12 +93,7 @@ namespace GAME
 		for (auto [entity, transform, orbit] : orbiters.each())
 		{
 			orbit.currentAngle += orbit.angularSpeed * deltaTime.dtSec;
-
-			if (auto obs = registry.try_get<Observe>(entity))
-				orbit.currentOffset = std::cos(std::sin(deltaTime.totalTime + obs->offsetTranslate));
-			else
-				orbit.currentOffset = std::cos(std::sin(deltaTime.totalTime));
-
+			orbit.currentOffset = std::cos(std::sin(deltaTime.totalTime));
 		}
 	}
 

@@ -10,6 +10,8 @@ int main()
 	srand(time);
 
 	registry.ctx().emplace<UTIL::Config>();
+	registry.ctx().emplace<LOG::Logs>();
+	LOG::InitializeLogSystem(registry);
 
 	BEHAVIORS::GraphicsBehavior(registry); 
 	BEHAVIORS::UIBehavior(registry);

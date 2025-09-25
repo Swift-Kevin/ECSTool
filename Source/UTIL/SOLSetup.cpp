@@ -14,55 +14,41 @@ namespace SOL
 		auto parent = registry.get<GAME::Transform>(parentE);
 		UTIL::UpdateWorldPosition(parent.world, child.world, radius);
 		UTIL::CreateOrbiter(registry, moonEntity, parentE, "Moon");
-		registry.emplace<GAME::Observe>(moonEntity, UTIL::GetRandomRange(0.1, 10));
-
+		
 		return moonEntity;
+	}
+
+	entt::entity CreatePlanet(entt::registry& registry, std::string modelName)
+	{
+		entt::entity sunEntity = registry.view<GAME::Sun>().front();
+
+		auto planetEntity = registry.create();
+		UTIL::CreateModelEntity(registry, planetEntity, modelName);
+		UTIL::CreateOrbiter(registry, planetEntity, sunEntity, modelName);
+		return planetEntity;
 	}
 
 	void SetupMercury(entt::registry& registry)
 	{
-		entt::entity sunEntity = registry.view<GAME::Sun>().front();
-
-		auto mercuryEntity = registry.create();
-		UTIL::CreateModelEntity(registry, mercuryEntity, "Mercury");
-		UTIL::CreateOrbiter(registry, mercuryEntity, sunEntity, "Mercury");
+		CreatePlanet(registry, "Mercury");
 	}
 
 	void SetupVenus(entt::registry& registry)
 	{
-		entt::entity sunEntity = registry.view<GAME::Sun>().front();
-
-		auto venusEntity = registry.create();
-		UTIL::CreateModelEntity(registry, venusEntity, "Venus");
-		UTIL::CreateOrbiter(registry, venusEntity, sunEntity, "Venus");
+		CreatePlanet(registry, "Venus");
 	}
 
 	void SetupEarth(entt::registry& registry)
 	{
-		entt::entity sunEntity = registry.view<GAME::Sun>().front();
-
-		// Create the Earth... i just know this is going to take forever
-		auto earthEntity = registry.create();
-		UTIL::CreateModelEntity(registry, earthEntity, "Earth");
+		entt::entity earthEntity = CreatePlanet(registry, "Earth");
 		registry.emplace<GAME::Earth>(earthEntity);
-		UTIL::CreateOrbiter(registry, earthEntity, sunEntity, "Earth");
 
-		// Create the Moon around Earth (+ fix position with it)
 		entt::entity moon = CreateMoon(registry, earthEntity, UTIL::GetRandomRange(3, 5));
-		registry.emplace<GAME::Moon>(moon); // for inspector debugging
-
-		// Visualize Changes on these entites
-		registry.emplace<GAME::Observe>(earthEntity);
 	}
 
 	void SetupMars(entt::registry& registry)
 	{
-		entt::entity sunEntity = registry.view<GAME::Sun>().front();
-
-		// Create Mars
-		auto marsEntity = registry.create();
-		UTIL::CreateModelEntity(registry, marsEntity, "Mars");
-		UTIL::CreateOrbiter(registry, marsEntity, sunEntity, "Mars");
+		entt::entity marsEntity = CreatePlanet(registry, "Mars");
 
 		// Create Phobos
 		CreateMoon(registry, marsEntity, UTIL::GetRandomRange(4, 6));
@@ -72,13 +58,8 @@ namespace SOL
 
 	void SetupJupiter(entt::registry& registry)
 	{
-		entt::entity sunEntity = registry.view<GAME::Sun>().front();
-
-		// Jupiter around the Sun
-		auto jupiterEntity = registry.create();
-		UTIL::CreateModelEntity(registry, jupiterEntity, "Jupiter");
-		UTIL::CreateOrbiter(registry, jupiterEntity, sunEntity, "Jupiter");
-
+		entt::entity jupiterEntity = CreatePlanet(registry, "Jupiter");
+		
 		// Io
 		CreateMoon(registry, jupiterEntity, UTIL::GetRandomRange(6, 10));
 		// Europa
@@ -91,12 +72,7 @@ namespace SOL
 
 	void SetupSaturn(entt::registry& registry)
 	{
-		entt::entity sunEntity = registry.view<GAME::Sun>().front();
-
-		// Saturn around the Sun
-		auto saturnEntity = registry.create();
-		UTIL::CreateModelEntity(registry, saturnEntity, "Saturn");
-		UTIL::CreateOrbiter(registry, saturnEntity, sunEntity, "Saturn");
+		entt::entity saturnEntity = CreatePlanet(registry, "Saturn");
 
 		// Mimas
 		CreateMoon(registry, saturnEntity, UTIL::GetRandomRange(8, 15));
@@ -120,12 +96,7 @@ namespace SOL
 
 	void SetupUranus(entt::registry& registry)
 	{
-		entt::entity sunEntity = registry.view<GAME::Sun>().front();
-
-		// Uranus around the Sun
-		auto uranusEntity = registry.create();
-		UTIL::CreateModelEntity(registry, uranusEntity, "Uranus");
-		UTIL::CreateOrbiter(registry, uranusEntity, sunEntity, "Uranus");
+		entt::entity uranusEntity = CreatePlanet(registry, "Uranus");
 
 		// Puck
 		CreateMoon(registry, uranusEntity, UTIL::GetRandomRange(5, 10));
@@ -143,13 +114,8 @@ namespace SOL
 
 	void SetupNeptune(entt::registry& registry)
 	{
-		entt::entity sunEntity = registry.view<GAME::Sun>().front();
+		entt::entity neptuneEntity = CreatePlanet(registry, "Neptune");
 
-		// Poseidon under the space sea (sun)
-		auto neptuneEntity = registry.create();
-		UTIL::CreateModelEntity(registry, neptuneEntity, "Neptune");
-		UTIL::CreateOrbiter(registry, neptuneEntity, sunEntity, "Neptune");
-		 
 		// Proteus
 		CreateMoon(registry, neptuneEntity, UTIL::GetRandomRange(5, 12));
 		// Triton

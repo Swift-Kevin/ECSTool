@@ -14,23 +14,18 @@ namespace GAME
 
 	///*** Tags ***///
 	COMPONENT(Sun) {};
-	COMPONENT(Moon) {};
 	COMPONENT(Earth) {};
 	COMPONENT(Player) {};
 	COMPONENT(Obstacle) {};
 	COMPONENT(Collidable) {};
 	COMPONENT(GameManager) {};
+	COMPONENT(StressTestAddition) {};
 
 	///*** Components ***///
 	COMPONENT(Transform)
 	{
 		GW::MATH::GMATRIXF local = GW::MATH::GIdentityMatrixF;
 		GW::MATH::GMATRIXF world = GW::MATH::GIdentityMatrixF;
-	};
-
-	COMPONENT(Observe) 
-	{
-		float offsetTranslate = 0.0f;
 	};
 
 	COMPONENT(ParentTransform)

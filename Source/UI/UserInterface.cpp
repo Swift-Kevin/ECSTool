@@ -1,6 +1,7 @@
 #include "../CCL.h"
 #include "../UTIL/Utilities.h"
 #include "../UI/UserInterfaceComponents.h"
+#include "../UTIL/Behaviors.h"
 
 static HWND    winHandle = nullptr;
 static WNDPROC winProc = nullptr;
@@ -34,115 +35,91 @@ namespace UI
 
 	void Update_UIMenuBar(entt::registry& registry, entt::entity entity)
 	{
-		// Menu Bar
-		ImGuiWindowFlags flags = {};
-		flags |= ImGuiWindowFlags_::ImGuiWindowFlags_NoResize;
-		flags |= ImGuiWindowFlags_::ImGuiWindowFlags_NoMove;
-		flags |= ImGuiWindowFlags_::ImGuiWindowFlags_NoCollapse;
-		flags |= ImGuiWindowFlags_::ImGuiWindowFlags_NoTitleBar;
-		flags |= ImGuiWindowFlags_::ImGuiWindowFlags_MenuBar;
-		flags |= ImGuiWindowFlags_::ImGuiWindowFlags_NoBackground;
-
 		UI::UIData& uiData = registry.get<UI::UIData>(entity);
-		ImGui::SetNextWindowPos(ImVec2(0, 0));
-		ImGui::SetNextWindowSize(ImVec2(uiData.io->DisplaySize.x, uiData.io->DisplaySize.y));
 
-		bool open = true;
-		if (ImGui::Begin("##", &open, flags))
+		// Menu Bar
+		if (ImGui::BeginMainMenuBar())
 		{
-			if (ImGui::BeginMenuBar())
-			{
-				if (ImGui::Button("Entites"))
-				{
-					uiData.state = (uiData.state != UI::MenuState::Entities) ? UI::MenuState::Entities : UI::MenuState::MenuBar;
-				}
-				if (ImGui::Button("Components"))
-				{
-					uiData.state = (uiData.state != UI::MenuState::Components) ? UI::MenuState::Components : UI::MenuState::MenuBar;
-				}
-				if (ImGui::Button("Console"))
-				{
-					uiData.state = (uiData.state != UI::MenuState::Console) ? UI::MenuState::Console : UI::MenuState::MenuBar;
-				}
-				if (ImGui::Button("Hierarchy"))
-				{
-					uiData.state = (uiData.state != UI::MenuState::Hierarchy) ? UI::MenuState::Hierarchy : UI::MenuState::MenuBar;
-				}
-				if (ImGui::Button("Inspector"))
-				{
-					uiData.state = (uiData.state != UI::MenuState::Inspector) ? UI::MenuState::Inspector: UI::MenuState::MenuBar;
-				}
+			uiData.menuBarSize = ImGui::GetWindowSize();
 
-				ImGui::EndMenuBar();
+			if (ImGui::MenuItem("Entites"))
+			{
+				LOG::Log("Opening Entites Menu");
+				uiData.state = UI::MenuState::Entities;
+			}
+			if (ImGui::MenuItem("Components"))
+			{
+				LOG::Log("Opening Components Menu");
+				uiData.state = UI::MenuState::Components;
+			}
+			if (ImGui::BeginMenu("Hierarchy"))
+			{
+				auto& info = registry.ctx().get<UTIL::DebugInfo>();
+
+				if (ImGui::MenuItem("Base Render")) { info.debugMode = UTIL::DebugHierarchy::BaseRender; }
+				if (ImGui::MenuItem("Rotation")) { info.debugMode = UTIL::DebugHierarchy::Rotation; }
+				if (ImGui::MenuItem("Translation")) { info.debugMode = UTIL::DebugHierarchy::Translation; }
+				if (ImGui::MenuItem("Scales")) { info.debugMode = UTIL::DebugHierarchy::Scale; }
+				if (ImGui::MenuItem("Combined")) { info.debugMode = UTIL::DebugHierarchy::Combined; }
+				if (ImGui::MenuItem("Multi Combined")) { info.debugMode = UTIL::DebugHierarchy::SolarSystem; }
+
+				ImGui::EndMenu();
+			}
+		}
+		ImGui::EndMainMenuBar();
+
+		if (uiData.state == UI::MenuState::Entities)
+			registry.patch<UI::UI_ViewEntites>(entity);
+		else if (uiData.state == UI::MenuState::Components)
+			registry.patch<UI::UI_ViewComponents>(entity);
+
+		registry.patch<UI::UI_Inspector>(entity);
+		registry.patch<UI::UI_ViewConsole>(entity);
+		registry.patch<UI::UI_StressTest>(entity);
+
+		// Camera Text
+		{
+			ImGui::SetNextWindowPos(ImVec2(uiData.io->DisplaySize.x * 0.2f, uiData.menuBarSize.y));
+			ImGui::SetNextWindowSize(ImVec2(175, 10));
+
+			ImGuiWindowFlags flags = {};
+			flags |= ImGuiWindowFlags_::ImGuiWindowFlags_NoResize;
+			flags |= ImGuiWindowFlags_::ImGuiWindowFlags_NoMove;
+			flags |= ImGuiWindowFlags_::ImGuiWindowFlags_NoCollapse;
+			flags |= ImGuiWindowFlags_::ImGuiWindowFlags_NoTitleBar;
+
+			if (ImGui::Begin("##Controls", 0, flags))
+			{
+				ImGui::Text("Hold Mouse 2 - Camera");
 			}
 			ImGui::End();
 		}
-
-		switch (uiData.state)
-		{
-		case UI::MenuState::Entities:
-		{
-			registry.patch<UI::UI_ViewEntites>(entity);
-		}
-		break;
-		case UI::MenuState::Components:
-		{
-			registry.patch<UI::UI_ViewComponents>(entity);
-		}
-		break;
-		case UI::MenuState::Console:
-		{
-			registry.patch<UI::UI_ViewConsole>(entity);
-		}
-		break;
-		case UI::MenuState::Hierarchy:
-		{
-			registry.patch<UI::UI_ViewHierarchy>(entity);
-		}
-		break;
-		case UI::MenuState::Inspector:
-		{
-			registry.patch<UI::UI_Inspector>(entity);
-		}
-		break;
-		default:
-			break;
-		}
-
-		// turn off bitflag for menu bar... since we reuse it
-		flags ^= ImGuiWindowFlags_::ImGuiWindowFlags_MenuBar;
-		ImGui::SetNextWindowPos(ImVec2(uiData.io->DisplaySize.x * 0.8f, uiData.io->DisplaySize.y * 0.95f));
-		ImGui::SetNextWindowSize(ImVec2(uiData.io->DisplaySize.x * 0.2f, uiData.io->DisplaySize.y * 0.1f));
-
-		if (ImGui::Begin("Controls", 0, flags))
-		{
-			ImGui::Text("Hold Mouse 2 - Camera");
-
-		}
-		ImGui::End();
 	}
 
 	void Update_UIViewEntitiesMenu(entt::registry& registry, entt::entity entity)
 	{
-		//std::cout << "Updating: Entities\n";
-
 		ImGuiWindowFlags flags = {};
 		flags |= ImGuiWindowFlags_::ImGuiWindowFlags_NoMove;
-		flags |= ImGuiWindowFlags_::ImGuiWindowFlags_NoResize;
 		flags |= ImGuiWindowFlags_::ImGuiWindowFlags_NoCollapse;
-		flags |= ImGuiWindowFlags_::ImGuiWindowFlags_NoBackground;
+		flags |= ImGuiWindowFlags_::ImGuiWindowFlags_NoTitleBar;
+		flags |= ImGuiWindowFlags_::ImGuiWindowFlags_NoResize;
 
 		UI::UIData& uiData = registry.get<UI::UIData>(entity);
-		ImGui::SetNextWindowPos(ImVec2(0, uiData.io->DisplaySize.y * 0.03));
+		ImGui::SetNextWindowPos(ImVec2(0, uiData.menuBarSize.y));
+		ImGui::SetNextWindowSize(ImVec2(uiData.io->DisplaySize.x * 0.2f, uiData.io->DisplaySize.y - uiData.menuBarSize.y));
 
 		if (ImGui::Begin("Entities", 0, flags))
 		{
-			if (ImGui::BeginListBox("##", ImVec2(uiData.io->DisplaySize.x * 0.25f, uiData.io->DisplaySize.y * 0.9)))
+			ImVec2 availableSpace = ImGui::GetContentRegionAvail();
+			if (ImGui::BeginListBox("##", availableSpace))
 			{
-				for (auto entity : registry.view<entt::entity>())
+				for (auto entity : registry.view<GAME::Transform>())
 				{
 					std::string name = "Entity: " + std::to_string((ENTT_ID_TYPE)entity);
-					ImGui::Selectable(name.c_str(), false);
+					if (ImGui::Selectable(name.c_str(), false))
+					{
+						uiData.inspectingEntity = entity;
+					}
 				}
 				ImGui::EndListBox();
 			}
@@ -152,19 +129,20 @@ namespace UI
 
 	void Update_UIViewComponentsMenu(entt::registry& registry, entt::entity entity)
 	{
-		//std::cout << "Updating: Components\n";
 		ImGuiWindowFlags flags = {};
 		flags |= ImGuiWindowFlags_::ImGuiWindowFlags_NoMove;
-		flags |= ImGuiWindowFlags_::ImGuiWindowFlags_NoResize;
 		flags |= ImGuiWindowFlags_::ImGuiWindowFlags_NoCollapse;
-		flags |= ImGuiWindowFlags_::ImGuiWindowFlags_NoBackground;
+		flags |= ImGuiWindowFlags_::ImGuiWindowFlags_NoTitleBar;
+		flags |= ImGuiWindowFlags_::ImGuiWindowFlags_NoResize;
 
 		UI::UIData& uiData = registry.get<UI::UIData>(entity);
-		ImGui::SetNextWindowPos(ImVec2(0, uiData.io->DisplaySize.y * 0.03));
+		ImGui::SetNextWindowPos(ImVec2(0, uiData.menuBarSize.y));
+		ImGui::SetNextWindowSize(ImVec2(uiData.io->DisplaySize.x * 0.2f, uiData.io->DisplaySize.y - uiData.menuBarSize.y));
 
 		if (ImGui::Begin("Components", 0, flags))
 		{
-			if (ImGui::BeginListBox("##", ImVec2(uiData.io->DisplaySize.x * 0.25f, uiData.io->DisplaySize.y * 0.9)))
+			ImVec2 availableSpace = ImGui::GetContentRegionAvail();
+			if (ImGui::BeginListBox("##", availableSpace))
 			{
 				auto& map = RegisteredComponents();
 				for (auto [compName, compIdx] : map)
@@ -180,85 +158,157 @@ namespace UI
 
 	void Update_UIViewConsoleMenu(entt::registry& registry, entt::entity entity)
 	{
-		//std::cout << "Updating: Console\n";
-	}
-
-	void Update_UIViewHierarchy(entt::registry& registry, entt::entity entity)
-	{
 		ImGuiWindowFlags flags = {};
 		flags |= ImGuiWindowFlags_::ImGuiWindowFlags_NoMove;
-		flags |= ImGuiWindowFlags_::ImGuiWindowFlags_NoResize;
 		flags |= ImGuiWindowFlags_::ImGuiWindowFlags_NoCollapse;
-		flags |= ImGuiWindowFlags_::ImGuiWindowFlags_NoBackground;
+		flags |= ImGuiWindowFlags_::ImGuiWindowFlags_NoResize;
 
 		UI::UIData& uiData = registry.get<UI::UIData>(entity);
-		ImGui::SetNextWindowPos(ImVec2(0, uiData.io->DisplaySize.y * 0.03));
-		ImGui::SetNextWindowSize(ImVec2(uiData.io->DisplaySize.x, uiData.io->DisplaySize.y));
+		ImGui::SetNextWindowPos(ImVec2(uiData.io->DisplaySize.x * 0.2, uiData.io->DisplaySize.y * 0.75));
+		ImGui::SetNextWindowSize(ImVec2(uiData.io->DisplaySize.x * 0.6, uiData.io->DisplaySize.y * 0.25));
 
-		auto& info = registry.ctx().get<UTIL::DebugInfo>();
-		if (ImGui::Begin("Hierarchy", 0, flags))
+		static bool showWarning = true;
+		static bool showError = true;
+		static bool showDebug = true;
+
+		if (ImGui::Begin("Console", 0, flags))
 		{
-			if (ImGui::Button("Base Render"))
+			ImGui::Text("Filter: ");
+			ImGui::SameLine();
+			ImGui::Checkbox("Debug", &showDebug);
+			ImGui::SameLine();
+			ImGui::Checkbox("Warning", &showWarning);
+			ImGui::SameLine();
+			ImGui::Checkbox("Error", &showError);
+
+			ImVec2 availableSpace = ImGui::GetContentRegionAvail();
+			if (ImGui::BeginListBox("##", availableSpace))
 			{
-				info.debugMode = UTIL::DebugHierarchy::BaseRender;
-			}
-			if (ImGui::Button("Rotation"))
-			{
-				info.debugMode = UTIL::DebugHierarchy::Rotation;
-			}
-			if (ImGui::Button("Translation"))
-			{
-				info.debugMode = UTIL::DebugHierarchy::Translation;
-			}
-			if (ImGui::Button("Scales"))
-			{
-				info.debugMode = UTIL::DebugHierarchy::Scale;
-			}
-			if (ImGui::Button("Combined"))
-			{
-				info.debugMode = UTIL::DebugHierarchy::Combined;
-			}
-			if (ImGui::Button("Multi Combined"))
-			{
-				info.debugMode = UTIL::DebugHierarchy::SolarSystem;
+				std::vector<LOG::LogEntry> logs = registry.ctx().get<LOG::Logs>().messages;
+
+				for (auto log : logs)
+				{
+					bool showMsg = LOG::ShowMessageStatus(showDebug, showWarning, showError, log.severity);
+
+					if (showMsg)
+					{
+						ImVec4 color = ImVec4(1, 1, 1, 1);
+						if (log.severity == LOG::LogSeverity::Warning)
+						{
+							color = ImVec4(1, 1, 0, 1);
+						}
+						else if (log.severity == LOG::LogSeverity::Error)
+						{
+							color = ImVec4(1, 0, 0, 1);
+						}
+
+						ImGui::TextColored(color, "%s", LOG::EnumToLabel(log.severity));
+						ImGui::SameLine();
+						ImGui::Text(log.content.c_str());
+					}
+				}
+
+				ImGui::SetScrollHereY(1);
+				ImGui::EndListBox();
 			}
 		}
 		ImGui::End();
 	}
-	
+
 	void Update_UIInspector(entt::registry& registry, entt::entity entity)
 	{
 		ImGuiWindowFlags flags = {};
+		flags |= ImGuiWindowFlags_::ImGuiWindowFlags_NoMove;
 		flags |= ImGuiWindowFlags_::ImGuiWindowFlags_NoCollapse;
-		flags |= ImGuiWindowFlags_::ImGuiWindowFlags_NoBackground;
+		flags |= ImGuiWindowFlags_::ImGuiWindowFlags_NoResize;
 
 		UI::UIData& uiData = registry.get<UI::UIData>(entity);
-		ImGui::SetNextWindowPos(ImVec2(0, uiData.io->DisplaySize.y * 0.03));
-		ImGui::SetNextWindowSize(ImVec2(200, uiData.io->DisplaySize.y));
+		ImGui::SetNextWindowPos(ImVec2(uiData.io->DisplaySize.x - (uiData.io->DisplaySize.x * 0.2), uiData.menuBarSize.y));
+		ImGui::SetNextWindowSize(ImVec2(uiData.io->DisplaySize.x * 0.2, uiData.io->DisplaySize.y * 0.25));
 
-		if (ImGui::Begin("##", 0, flags))
+		if (ImGui::Begin("Inspector", 0, flags))
 		{
-			ImGui::PushItemWidth(200);
-			GAME::Transform transform = registry.get<GAME::Transform>(registry.view<GAME::Earth>().front());
-			if (ImGui::CollapsingHeader("Earth - World Transform", ImGuiTreeNodeFlags_DefaultOpen)) 
+			if (uiData.inspectingEntity != entt::null)
 			{
-				ConstructTransformInpsector(transform.world);
+				ImGui::PushItemWidth(200);
+				GAME::Transform transform = registry.get<GAME::Transform>(uiData.inspectingEntity);
+				if (ImGui::CollapsingHeader("World Transform", ImGuiTreeNodeFlags_DefaultOpen))
+				{
+					ConstructTransformInpsector(transform.world);
+				}
+				if (ImGui::CollapsingHeader("Local Transform", ImGuiTreeNodeFlags_DefaultOpen))
+				{
+					ConstructTransformInpsector(transform.local);
+				}
+				ImGui::PopItemWidth();
 			}
-			if (ImGui::CollapsingHeader("Earth - Local Transform", ImGuiTreeNodeFlags_DefaultOpen))
+			else
 			{
-				ConstructTransformInpsector(transform.local);
+				ImGui::Text("No Entity Selected");
+			}
+		}
+		ImGui::End();
+	}
+
+	void Update_UIStressTest(entt::registry& registry, entt::entity entity)
+	{
+		ImGuiWindowFlags flags = {};
+		flags |= ImGuiWindowFlags_::ImGuiWindowFlags_NoMove;
+		flags |= ImGuiWindowFlags_::ImGuiWindowFlags_NoCollapse;
+		flags |= ImGuiWindowFlags_::ImGuiWindowFlags_NoResize;
+
+		UI::UIData& uiData = registry.get<UI::UIData>(entity);
+		ImGui::SetNextWindowPos(ImVec2(uiData.io->DisplaySize.x - (uiData.io->DisplaySize.x * 0.2), (uiData.io->DisplaySize.y * 0.25) + uiData.menuBarSize.y));
+		ImGui::SetNextWindowSize(ImVec2(uiData.io->DisplaySize.x * 0.2, uiData.io->DisplaySize.y * 0.75));
+
+		if (ImGui::Begin("Testing Suite", 0, flags))
+		{
+			if (ImGui::Button("Clear Extra Entities"))
+			{
+				auto added = registry.view<GAME::StressTestAddition>();
+
+				for (auto& ent : added)
+				{
+					registry.destroy(ent);
+				}
 			}
 
-			transform = registry.get<GAME::Transform>(registry.view<GAME::Moon>().front());
-			if (ImGui::CollapsingHeader("Moon - World Transform", ImGuiTreeNodeFlags_DefaultOpen))
+			if (ImGui::Button("+10 Entites"))
 			{
-				ConstructTransformInpsector(transform.world);
+				BEHAVIORS::AddEntites(10);
 			}
-			if (ImGui::CollapsingHeader("Moon - Local Transform", ImGuiTreeNodeFlags_DefaultOpen))
+			if (ImGui::Button("+20 Entites"))
 			{
-				ConstructTransformInpsector(transform.local);
+				BEHAVIORS::AddEntites(20);
 			}
-			ImGui::PopItemWidth();
+			if (ImGui::Button("+30 Entites"))
+			{
+				BEHAVIORS::AddEntites(30);
+			}
+			if (ImGui::Button("+50 Entites"))
+			{
+				BEHAVIORS::AddEntites(50);
+			}
+			if (ImGui::Button("+100 Entites"))
+			{
+				BEHAVIORS::AddEntites(100);
+			}
+			if (ImGui::Button("+500 Entites"))
+			{
+				BEHAVIORS::AddEntites(500);
+			}
+			if (ImGui::Button("+1,000 Entites"))
+			{
+				BEHAVIORS::AddEntites(1000);
+			}
+			if (ImGui::Button("+10,000 Entites"))
+			{
+				BEHAVIORS::AddEntites(10000);
+			}
+			if (ImGui::Button("+25,000 Entites"))
+			{
+				BEHAVIORS::AddEntites(25000);
+			}
 		}
 		ImGui::End();
 	}
@@ -365,8 +415,8 @@ namespace UI
 		registry.emplace<UI::UI_ViewEntites>(entity);
 		registry.emplace<UI::UI_ViewComponents>(entity);
 		registry.emplace<UI::UI_ViewConsole>(entity);
-		registry.emplace<UI::UI_ViewHierarchy>(entity);
 		registry.emplace<UI::UI_Inspector>(entity);
+		registry.emplace<UI::UI_StressTest>(entity);
 	}
 
 	void Update_UIContext(entt::registry& registry, entt::entity entity)
@@ -384,7 +434,7 @@ namespace UI
 
 		ImGui::NewFrame();
 		// For referencing documentation:
-		// ImGui::ShowDemoWindow();
+		//ImGui::ShowDemoWindow();
 
 		registry.patch<UI::UI_MenuBar>(entity);
 	}
@@ -396,8 +446,8 @@ namespace UI
 		registry.on_update<UI::UI_ViewEntites>().connect<Update_UIViewEntitiesMenu>();
 		registry.on_update<UI::UI_ViewComponents>().connect<Update_UIViewComponentsMenu>();
 		registry.on_update<UI::UI_ViewConsole>().connect<Update_UIViewConsoleMenu>();
-		registry.on_update<UI::UI_ViewHierarchy>().connect<Update_UIViewHierarchy>();
 		registry.on_update<UI::UI_Inspector>().connect<Update_UIInspector>();
+		registry.on_update<UI::UI_StressTest>().connect<Update_UIStressTest>();
 
 		// UI Data Component
 		registry.on_construct<UI::UIData>().connect<Construct_UIContext>();

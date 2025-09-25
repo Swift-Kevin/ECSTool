@@ -2,6 +2,13 @@
 
 namespace BEHAVIORS
 {
+	int AddEntites(int numberToAdd)
+	{
+		static int entityAdder = 0;
+		entityAdder += numberToAdd;
+		return entityAdder;
+	}
+
 	/// <summary>
 	/// Loads all Graphics related data
 	/// </summary>
@@ -150,7 +157,7 @@ namespace BEHAVIORS
 
 		UTIL::DebugInfo& dbg = registry.ctx().emplace<UTIL::DebugInfo>();
 		dbg.debugMode = UTIL::DebugHierarchy::BaseRender;
-		int counter = 0;
+
 		do
 		{
 			// Set the delta time
@@ -162,13 +169,15 @@ namespace BEHAVIORS
 			time.totalTime += elapsed;
 			dbg.theta = std::cos(std::sin(time.totalTime));
 
-			if (counter < 10000)
+			while (AddEntites() > 0)
 			{
 				entt::entity sun = registry.group<GAME::Sun>().front();
-				entt::entity created = SOL::CreateMoon(registry, sun, UTIL::GetRandomRange(-1000, 1000));
+				entt::entity created = SOL::CreateMoon(registry, sun, UTIL::GetRandomRange(50, 60));
 				// override spawned planets.
 				registry.get<GAME::Orbit>(created).angularSpeed = UTIL::GetRandomRange(-0.1, 0.1);
-				counter++;
+				registry.emplace<GAME::StressTestAddition>(created);
+
+				AddEntites(-1);
 			}
 
 			// Update Game
@@ -188,6 +197,16 @@ namespace BEHAVIORS
 				}
 				else
 				{
+					// static so i can reuse the mem addr
+					static int secondCounter = 0;
+					if ((time.totalTime > 2.0 && time.totalTime < 15.0f) && (int)time.totalTime != secondCounter)
+					{
+						secondCounter++;
+						LOG::LogDebug("Example Debug Log");
+						LOG::LogWarning("Example Warning Log");
+						LOG::LogError("Example Error Log");
+					}
+
 					registry.patch<APP::Window>(entity);
 				}
 			}

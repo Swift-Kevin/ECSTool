@@ -1,18 +1,12 @@
 #ifndef UI_COMPONENTS_H
 #define UI_COMPONENTS_H
 
-#include "vulkan\vulkan.hpp"
-
 namespace UI
 {
 	enum class MenuState : byte
 	{
-		MenuBar,
 		Entities,
 		Components,
-		Console,
-		Hierarchy,
-		Inspector
 	};
 
 	/* Tags */
@@ -21,14 +15,16 @@ namespace UI
 	COMPONENT(UI_ViewEntites) {};
 	COMPONENT(UI_ViewComponents) {};
 	COMPONENT(UI_ViewConsole) {};
-	COMPONENT(UI_ViewHierarchy) {};
+	COMPONENT(UI_StressTest) {};
 
 	/* Components */
 	COMPONENT(UIData)
 	{
 		VkDescriptorPool uiDescriptorPool;
-		MenuState state = MenuState::MenuBar;
+		MenuState state = MenuState::Entities;
 		ImGuiIO* io = nullptr;
+		entt::entity inspectingEntity = entt::null;
+		ImVec2 menuBarSize = ImVec2(0, 0);
 	};
 
 } // namespace UI

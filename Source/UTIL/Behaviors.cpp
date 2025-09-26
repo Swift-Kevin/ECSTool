@@ -136,6 +136,7 @@ namespace BEHAVIORS
 			SOL::SetupSaturn(registry);
 			SOL::SetupUranus(registry);
 			SOL::SetupNeptune(registry);
+			SOL::SetupPluto(registry);
 		}
 
 		// Create Gameplay Entity to manage all gameplay systems

@@ -17,6 +17,7 @@ namespace SOL
 	void SetupSaturn(entt::registry& registry);
 	void SetupUranus(entt::registry& registry);
 	void SetupNeptune(entt::registry& registry);
+	void SetupPluto(entt::registry& registry);
 
 } // namespace SOL
 #endif // !SOL_H_

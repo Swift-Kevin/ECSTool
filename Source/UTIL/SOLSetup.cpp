@@ -124,5 +124,10 @@ namespace SOL
 		CreateMoon(registry, neptuneEntity, UTIL::GetRandomRange(5, 12));
 	}
 
+	void SetupPluto(entt::registry& registry)
+	{
+		entt::entity plutoEntity = CreatePlanet(registry, "Pluto");
+	}
+
 
 } // namespace SOL

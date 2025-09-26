@@ -38,6 +38,7 @@ namespace GAME
 			UTIL::DebugInfo dInfo = registry.ctx().get<UTIL::DebugInfo>();
 			GW::MATH::GVECTORF translate = { 0, dInfo.theta, 0, 1 };
 			GW::MATH::GVECTORF scale = { dInfo.theta, dInfo.theta, dInfo.theta, 1 };
+			observeChange = registry.any_of<GAME::Orbit>(entity);
 
 			switch (dInfo.debugMode)
 			{

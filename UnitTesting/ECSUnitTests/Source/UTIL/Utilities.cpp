@@ -1,3 +1,4 @@
+#include "pch.h"
 #include "Utilities.h"
 #include "../CCL.h"
 
@@ -90,6 +91,7 @@ namespace UTIL
 
 	float GetRandomRange(float min, float max)
 	{
+		//return ((float)rand()) / (((float)RAND_MAX / (max - min)));
 		return min + ((float)rand()) / (((float)RAND_MAX / (max - min)));
 	}
 
@@ -98,17 +100,15 @@ namespace UTIL
 		std::cout << "Vector: {" << toPrint.x << ", " << toPrint.y << ", " << toPrint.z << ", " << toPrint.w << "}\n";
 	}
 
+	void ComputeChildLocal(GW::MATH::GMATRIXF parentWorld, GAME::Transform& child)
+	{
+		GW::MATH::GMATRIXF parentInverse = GW::MATH::GIdentityMatrixF;
+		GW::MATH::GMatrix::InverseF(parentWorld, parentInverse);
+		GW::MATH::GMatrix::MultiplyMatrixF(child.world, parentInverse, child.local);
+	}
+
 	void CreateOrbiter(entt::registry& registry, entt::entity orbiter, entt::entity orbiting, std::string iniName)
 	{
-		auto& child = registry.get<GAME::Transform>(orbiter);
-		auto parent = registry.get<GAME::Transform>(orbiting);
-		registry.emplace<GAME::ParentTransform>(orbiter, orbiting);
-
-		// Compute Child Local
-		GW::MATH::GMATRIXF parentInverse = GW::MATH::GIdentityMatrixF;
-		GW::MATH::GMatrix::InverseF(parent.world, parentInverse);
-		GW::MATH::GMatrix::MultiplyMatrixF(child.world, parentInverse, child.local);
-
 		std::shared_ptr<const GameConfig> config = registry.ctx().get<UTIL::Config>().gameConfig;
 		float rot = config.get()->at(iniName).at("rotSpeed").as<float>();
 
@@ -168,6 +168,33 @@ namespace UTIL
 		parentWorld.row4.z += pos.z;
 
 		childWorld.row4 = parentWorld.row4;
+	}
+	
+	void UpdateChildren(entt::registry& registry, entt::entity parent)
+	{
+		auto view = registry.view<GAME::ChildTransform, GAME::Transform>();
+		for (auto [entity, relation, transform] : view.each())
+		{
+			if (relation.parent == parent)
+			{
+				GW::MATH::GMatrix::MultiplyMatrixF(transform.local, registry.get<GAME::Transform>(parent).world, transform.world);
+				UpdateChildren(registry, entity); 
+			}
+		}
+	}
+
+	void ComputeHierarchy(entt::registry& registry)
+	{
+		auto roots = registry.view<GAME::Transform>();
+		for (auto entity : roots)
+		{
+			/*if (!registry.any_of<GAME::ChildTransform>(entity))
+			{
+				continue;
+			}*/
+
+			UpdateChildren(registry, entity);
+		}
 	}
 
 } // namespace UTIL

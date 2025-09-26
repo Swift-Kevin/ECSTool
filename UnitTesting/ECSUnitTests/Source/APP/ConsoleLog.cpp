@@ -29,24 +29,28 @@ namespace LOG
 
 		LogEntry entry;
 		entry.severity = _severity;
+		//entry.content = '[' + _log + ']';
 		entry.content = _log;
 
 		auto& logs = p_registry->ctx().get<Logs>();
 		logs.messages.push_back(entry);
 	}
 
-	void LogWarning(const char* _log)
-	{
-		Log(_log, LOG::LogSeverity::Warning);
-	}
-
 	void LogDebug(const char* _log)
 	{
+		//Log(_log, LOG::LogSeverity::Error);
 		Log(_log, LOG::LogSeverity::Debug);
+	}
+
+	void LogWarning(const char* _log)
+	{
+		//Log(_log, LOG::LogSeverity::Debug);
+		Log(_log, LOG::LogSeverity::Warning);
 	}
 
 	void LogError(const char* _log)
 	{
+		//Log(_log, LOG::LogSeverity::Warning);
 		Log(_log, LOG::LogSeverity::Error);
 	}
 }

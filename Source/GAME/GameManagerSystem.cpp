@@ -48,33 +48,26 @@ namespace GAME
 			}
 			case UTIL::DebugHierarchy::Translation:
 			{
-				if (observeChange)
-					GW::MATH::GMatrix::TranslateGlobalF(parent.world, translate, parent.world);
+				GW::MATH::GMatrix::TranslateGlobalF(parent.world, translate, parent.world);
 				break;
 			}
 			case UTIL::DebugHierarchy::Scale:
 			{
-				if (observeChange)
-					GW::MATH::GMatrix::ScaleLocalF(parent.world, scale, parent.world);
+				GW::MATH::GMatrix::ScaleLocalF(parent.world, scale, parent.world);
 				break;
 			}
 			case UTIL::DebugHierarchy::Combined:
 			{
-				if (observeChange)
-					GW::MATH::GMatrix::TranslateGlobalF(parent.world, translate, parent.world);
-
+				GW::MATH::GMatrix::TranslateGlobalF(parent.world, translate, parent.world);
 				GW::MATH::GMatrix::RotateYGlobalF(parent.world, orbit.currentAngle, parent.world);
-
-				if (observeChange)
-					GW::MATH::GMatrix::ScaleLocalF(parent.world, scale, parent.world);
+				GW::MATH::GMatrix::ScaleLocalF(parent.world, scale, parent.world);
 
 				break;
 			}
 			case UTIL::DebugHierarchy::SolarSystem:
 			{
 				GW::MATH::GMatrix::RotateYGlobalF(parent.world, orbit.currentAngle, parent.world);
-				if (observeChange)
-					GW::MATH::GMatrix::TranslateGlobalF(parent.world, translate, parent.world);
+				GW::MATH::GMatrix::TranslateGlobalF(parent.world, translate, parent.world);
 				break;
 			}
 			default:

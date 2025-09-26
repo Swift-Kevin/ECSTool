@@ -1,3 +1,4 @@
+#include "pch.h"
 #include "GameConfig.h"
 #include <filesystem>
 using namespace std::chrono_literals;
@@ -9,8 +10,9 @@ GameConfig::GameConfig() : ini::IniFile()
 	// a more reasonable solution would be to write out some default values here
 
 	// this is really slick but it does require C++17
-	const char* defaults = "../SaveFiles/defaults.ini";
-	const char* saved ="../SaveFiles/saved.ini";
+	const char* defaults = "../../SaveFiles/defaults.ini";
+	const char* saved ="../../SaveFiles/saved.ini";
+	auto a = std::filesystem::current_path();
 	// if they both exist choose the newest one
 	if (std::filesystem::exists(defaults) && 
 		std::filesystem::exists(saved)) {

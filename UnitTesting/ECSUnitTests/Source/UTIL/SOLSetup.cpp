@@ -1,3 +1,4 @@
+#include "pch.h"
 #include "SOLSetup.h"
 #include "../CCL.h"
 #include "Utilities.h"
@@ -8,13 +9,11 @@ namespace SOL
 	{
 		// Creating the Earth's Moon Orbiting Earth
 		auto moonEntity = registry.create();
-		UTIL::CreateModelEntity(registry, moonEntity, "Moon");
-
-		auto& child = registry.get<GAME::Transform>(moonEntity);
-		auto parent = registry.get<GAME::Transform>(parentE);
-		UTIL::UpdateWorldPosition(parent.world, child.world, radius);
 		UTIL::CreateOrbiter(registry, moonEntity, parentE, "Moon");
-		
+		registry.emplace<GAME::Moon>(moonEntity);
+		//registry.emplace<GAME::ChildTransform>(moonEntity, moonEntity);
+		registry.emplace<GAME::ChildTransform>(moonEntity, parentE);
+
 		return moonEntity;
 	}
 

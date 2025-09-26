@@ -15,6 +15,7 @@ namespace GAME
 	///*** Tags ***///
 	COMPONENT(Sun) {};
 	COMPONENT(Earth) {};
+	COMPONENT(Moon) { int temp = 0; };
 	COMPONENT(Player) {};
 	COMPONENT(Obstacle) {};
 	COMPONENT(Collidable) {};
@@ -28,7 +29,7 @@ namespace GAME
 		GW::MATH::GMATRIXF world = GW::MATH::GIdentityMatrixF;
 	};
 
-	COMPONENT(ParentTransform)
+	COMPONENT(ChildTransform)
 	{
 		entt::entity parent = entt::null;
 	};

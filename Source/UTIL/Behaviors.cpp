@@ -173,9 +173,9 @@ namespace BEHAVIORS
 			while (AddEntites() > 0)
 			{
 				entt::entity sun = registry.group<GAME::Sun>().front();
-				entt::entity created = SOL::CreateMoon(registry, sun, UTIL::GetRandomRange(50, 60));
+				entt::entity created = SOL::CreateMoon(registry, sun, RANDOM::GetRandomRange(50, 60));
 				// override spawned planets.
-				registry.get<GAME::Orbit>(created).angularSpeed = UTIL::GetRandomRange(-0.1, 0.1);
+				registry.get<GAME::Orbit>(created).angularSpeed = RANDOM::GetRandomRange(-0.1, 0.1);
 				registry.emplace<GAME::StressTestAddition>(created);
 
 				AddEntites(-1);

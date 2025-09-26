@@ -43,7 +43,7 @@ namespace SOL
 		entt::entity earthEntity = CreatePlanet(registry, "Earth");
 		registry.emplace<GAME::Earth>(earthEntity);
 
-		entt::entity moon = CreateMoon(registry, earthEntity, UTIL::GetRandomRange(3, 5));
+		entt::entity moon = CreateMoon(registry, earthEntity, RANDOM::GetRandomRange(3, 5));
 	}
 
 	void SetupMars(entt::registry& registry)
@@ -51,9 +51,9 @@ namespace SOL
 		entt::entity marsEntity = CreatePlanet(registry, "Mars");
 
 		// Create Phobos
-		CreateMoon(registry, marsEntity, UTIL::GetRandomRange(4, 6));
+		CreateMoon(registry, marsEntity, RANDOM::GetRandomRange(4, 6));
 		// Create Deimos
-		CreateMoon(registry, marsEntity, UTIL::GetRandomRange(4, 6));
+		CreateMoon(registry, marsEntity, RANDOM::GetRandomRange(4, 6));
 	}
 
 	void SetupJupiter(entt::registry& registry)
@@ -61,13 +61,13 @@ namespace SOL
 		entt::entity jupiterEntity = CreatePlanet(registry, "Jupiter");
 		
 		// Io
-		CreateMoon(registry, jupiterEntity, UTIL::GetRandomRange(6, 10));
+		CreateMoon(registry, jupiterEntity, RANDOM::GetRandomRange(6, 10));
 		// Europa
-		CreateMoon(registry, jupiterEntity, UTIL::GetRandomRange(6, 10));
+		CreateMoon(registry, jupiterEntity, RANDOM::GetRandomRange(6, 10));
 		// Ganymede
-		CreateMoon(registry, jupiterEntity, UTIL::GetRandomRange(6, 10));
+		CreateMoon(registry, jupiterEntity, RANDOM::GetRandomRange(6, 10));
 		// Callisto
-		CreateMoon(registry, jupiterEntity, UTIL::GetRandomRange(6, 10));
+		CreateMoon(registry, jupiterEntity, RANDOM::GetRandomRange(6, 10));
 	}
 
 	void SetupSaturn(entt::registry& registry)
@@ -75,23 +75,23 @@ namespace SOL
 		entt::entity saturnEntity = CreatePlanet(registry, "Saturn");
 
 		// Mimas
-		CreateMoon(registry, saturnEntity, UTIL::GetRandomRange(8, 15));
+		CreateMoon(registry, saturnEntity, RANDOM::GetRandomRange(8, 15));
 		// Enceldaus
-		CreateMoon(registry, saturnEntity, UTIL::GetRandomRange(8, 15));
+		CreateMoon(registry, saturnEntity, RANDOM::GetRandomRange(8, 15));
 		// Tethys
-		CreateMoon(registry, saturnEntity, UTIL::GetRandomRange(8, 15));
+		CreateMoon(registry, saturnEntity, RANDOM::GetRandomRange(8, 15));
 		// Dione
-		CreateMoon(registry, saturnEntity, UTIL::GetRandomRange(8, 15));
+		CreateMoon(registry, saturnEntity, RANDOM::GetRandomRange(8, 15));
 		// Rhea
-		CreateMoon(registry, saturnEntity, UTIL::GetRandomRange(8, 15));
+		CreateMoon(registry, saturnEntity, RANDOM::GetRandomRange(8, 15));
 		// Titan
-		CreateMoon(registry, saturnEntity, UTIL::GetRandomRange(8, 15));
+		CreateMoon(registry, saturnEntity, RANDOM::GetRandomRange(8, 15));
 		// Hyperion
-		CreateMoon(registry, saturnEntity, UTIL::GetRandomRange(8, 15));
+		CreateMoon(registry, saturnEntity, RANDOM::GetRandomRange(8, 15));
 		// Iapetus
-		CreateMoon(registry, saturnEntity, UTIL::GetRandomRange(8, 15));
+		CreateMoon(registry, saturnEntity, RANDOM::GetRandomRange(8, 15));
 		// Phoebe
-		CreateMoon(registry, saturnEntity, UTIL::GetRandomRange(8, 15));
+		CreateMoon(registry, saturnEntity, RANDOM::GetRandomRange(8, 15));
 	}
 
 	void SetupUranus(entt::registry& registry)
@@ -99,17 +99,17 @@ namespace SOL
 		entt::entity uranusEntity = CreatePlanet(registry, "Uranus");
 
 		// Puck
-		CreateMoon(registry, uranusEntity, UTIL::GetRandomRange(5, 10));
+		CreateMoon(registry, uranusEntity, RANDOM::GetRandomRange(5, 10));
 		// Miranda
-		CreateMoon(registry, uranusEntity, UTIL::GetRandomRange(5, 10));
+		CreateMoon(registry, uranusEntity, RANDOM::GetRandomRange(5, 10));
 		// Ariel
-		CreateMoon(registry, uranusEntity, UTIL::GetRandomRange(5, 10));
+		CreateMoon(registry, uranusEntity, RANDOM::GetRandomRange(5, 10));
 		// Umbriel
-		CreateMoon(registry, uranusEntity, UTIL::GetRandomRange(5, 10));
+		CreateMoon(registry, uranusEntity, RANDOM::GetRandomRange(5, 10));
 		// Titania
-		CreateMoon(registry, uranusEntity, UTIL::GetRandomRange(5, 10));
+		CreateMoon(registry, uranusEntity, RANDOM::GetRandomRange(5, 10));
 		// Oberon
-		CreateMoon(registry, uranusEntity, UTIL::GetRandomRange(5, 10));
+		CreateMoon(registry, uranusEntity, RANDOM::GetRandomRange(5, 10));
 	}
 
 	void SetupNeptune(entt::registry& registry)
@@ -117,11 +117,11 @@ namespace SOL
 		entt::entity neptuneEntity = CreatePlanet(registry, "Neptune");
 
 		// Proteus
-		CreateMoon(registry, neptuneEntity, UTIL::GetRandomRange(5, 12));
+		CreateMoon(registry, neptuneEntity, RANDOM::GetRandomRange(5, 12));
 		// Triton
-		CreateMoon(registry, neptuneEntity, UTIL::GetRandomRange(5, 12));
+		CreateMoon(registry, neptuneEntity, RANDOM::GetRandomRange(5, 12));
 		// Nerid
-		CreateMoon(registry, neptuneEntity, UTIL::GetRandomRange(5, 12));
+		CreateMoon(registry, neptuneEntity, RANDOM::GetRandomRange(5, 12));
 	}
 
 	void SetupPluto(entt::registry& registry)

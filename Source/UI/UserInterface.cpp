@@ -17,7 +17,7 @@ namespace UI
 {
 	void ConstructTransformInpsector(GW::MATH::GMATRIXF& matrix)
 	{
-		auto& rotVec = UTIL::GetRotationFromMatrix(matrix);
+		auto& rotVec = RANDOM::GetRotationFromMatrix(matrix);
 		float* pos[3] = { &matrix.row4.x, &matrix.row4.y, &matrix.row4.z, };
 		float* rot[3] = { &rotVec.x, &rotVec.y, &rotVec.z };
 		float* sca[3] = { &matrix.row1.x, &matrix.row2.y, &matrix.row3.z };

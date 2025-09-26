@@ -26,7 +26,7 @@ namespace GAME
 
 	void UpdateWorldTransforms(entt::registry& registry)
 	{
-		auto transforms = registry.view<Transform, Orbit, ParentTransform>();
+		auto transforms = registry.view<Transform, Orbit, ChildTransform>();
 		auto deltaTime = registry.ctx().get<UTIL::DeltaTime>();
 		bool observeChange = false;
 

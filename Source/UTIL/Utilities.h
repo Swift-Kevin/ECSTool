@@ -40,15 +40,24 @@ namespace UTIL
 	void CreateModelEntity(entt::registry& registry, entt::entity entity, std::string entityName, GAME::Transform* _transform = nullptr);
 	void SetupCamera(entt::registry& registry, entt::entity entity);
 
+	void PrintVector(GW::MATH::GVECTORF toPrint);
+	void CreateOrbiter(entt::registry& registry, entt::entity orbiter, entt::entity orbiting, std::string iniName = "");
+	void UpdateWorldPosition(GW::MATH::GMATRIXF parentWorld, GW::MATH::GMATRIXF& childWorld, float radius);
+	
+	// Hierarchy
+	void UpdateChildren(entt::registry& registry, entt::entity parent);
+	void ComputeHierarchy(entt::registry& registry);
+
+} // namespace UTIL
+
+
+namespace RANDOM 
+{
 	/// Creates a normalized vector pointing in a random direction on the X/Z plane
 	GW::MATH::GVECTORF GetRandomVelocityVector();
 	GW::MATH::GMATRIXF GetRandomTransform(GW::MATH::GVECTORF min, GW::MATH::GVECTORF max);
-
 	float GetRandomRange(float min = 0, float max = 0);
-	void PrintVector(GW::MATH::GVECTORF toPrint);
-	void CreateOrbiter(entt::registry& registry, entt::entity orbiter, entt::entity orbiting, std::string iniName = "");
 	GW::MATH::GVECTORF GetRotationFromMatrix(GW::MATH::GMATRIXF matrix);
-	void UpdateWorldPosition(GW::MATH::GMATRIXF parentWorld, GW::MATH::GMATRIXF& childWorld, float radius);
+}
 
-} // namespace UTIL
 #endif // !UTILITIES_H_

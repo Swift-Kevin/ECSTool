@@ -28,7 +28,7 @@ namespace GAME
 		GW::MATH::GMATRIXF world = GW::MATH::GIdentityMatrixF;
 	};
 
-	COMPONENT(ParentTransform)
+	COMPONENT(ChildTransform)
 	{
 		entt::entity parent = entt::null;
 	};

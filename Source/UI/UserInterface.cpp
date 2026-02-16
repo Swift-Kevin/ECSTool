@@ -105,8 +105,14 @@ namespace UI
 		flags |= ImGuiWindowFlags_::ImGuiWindowFlags_NoResize;
 
 		UI::UIData& uiData = registry.get<UI::UIData>(entity);
-		ImGui::SetNextWindowPos(ImVec2(0, uiData.menuBarSize.y));
-		ImGui::SetNextWindowSize(ImVec2(uiData.io->DisplaySize.x * 0.2f, uiData.io->DisplaySize.y - uiData.menuBarSize.y));
+		ImVec2 hold = ImVec2(0, 0);
+		hold.x = uiData.io->DisplaySize.x - uiData.io->DisplaySize.x * 0.2f;
+		hold.y = uiData.menuBarSize.y + uiData.io->DisplaySize.y * 0.25;
+		ImGui::SetNextWindowPos(hold);
+
+		hold.x = uiData.io->DisplaySize.x * 0.2f;
+		hold.y = uiData.io->DisplaySize.y * 0.5f - uiData.menuBarSize.y;
+		ImGui::SetNextWindowSize(hold);
 
 		if (ImGui::Begin("Entities", 0, flags))
 		{
@@ -136,8 +142,14 @@ namespace UI
 		flags |= ImGuiWindowFlags_::ImGuiWindowFlags_NoResize;
 
 		UI::UIData& uiData = registry.get<UI::UIData>(entity);
-		ImGui::SetNextWindowPos(ImVec2(0, uiData.menuBarSize.y));
-		ImGui::SetNextWindowSize(ImVec2(uiData.io->DisplaySize.x * 0.2f, uiData.io->DisplaySize.y - uiData.menuBarSize.y));
+		ImVec2 hold = ImVec2(0, 0);
+		hold.x = uiData.io->DisplaySize.x - uiData.io->DisplaySize.x * 0.2f;
+		hold.y = uiData.menuBarSize.y + uiData.io->DisplaySize.y * 0.25;
+		ImGui::SetNextWindowPos(hold);
+
+		hold.x = uiData.io->DisplaySize.x * 0.2f;
+		hold.y = uiData.io->DisplaySize.y * 0.5f - uiData.menuBarSize.y;
+		ImGui::SetNextWindowSize(hold);
 
 		if (ImGui::Begin("Components", 0, flags))
 		{
@@ -164,8 +176,14 @@ namespace UI
 		flags |= ImGuiWindowFlags_::ImGuiWindowFlags_NoResize;
 
 		UI::UIData& uiData = registry.get<UI::UIData>(entity);
-		ImGui::SetNextWindowPos(ImVec2(uiData.io->DisplaySize.x * 0.2, uiData.io->DisplaySize.y * 0.75));
-		ImGui::SetNextWindowSize(ImVec2(uiData.io->DisplaySize.x * 0.6, uiData.io->DisplaySize.y * 0.25));
+		ImVec2 hold = ImVec2(0, 0);
+		hold.x = uiData.io->DisplaySize.x - uiData.io->DisplaySize.x * 0.2;
+		hold.y = uiData.io->DisplaySize.y * 0.75f;
+		ImGui::SetNextWindowPos(hold);
+
+		hold.x = uiData.io->DisplaySize.x * 0.2f;
+		hold.y = uiData.io->DisplaySize.y * 0.25f;
+		ImGui::SetNextWindowSize(hold);
 
 		static bool showWarning = true;
 		static bool showError = true;
@@ -223,8 +241,14 @@ namespace UI
 		flags |= ImGuiWindowFlags_::ImGuiWindowFlags_NoResize;
 
 		UI::UIData& uiData = registry.get<UI::UIData>(entity);
-		ImGui::SetNextWindowPos(ImVec2(uiData.io->DisplaySize.x - (uiData.io->DisplaySize.x * 0.2), uiData.menuBarSize.y));
-		ImGui::SetNextWindowSize(ImVec2(uiData.io->DisplaySize.x * 0.2, uiData.io->DisplaySize.y * 0.25));
+		ImVec2 hold = ImVec2(0, 0);
+		hold.x = uiData.io->DisplaySize.x - (uiData.io->DisplaySize.x * 0.2);
+		hold.y = uiData.menuBarSize.y;
+		ImGui::SetNextWindowPos(hold);
+
+		hold.x = uiData.io->DisplaySize.x * 0.2;
+		hold.y = uiData.io->DisplaySize.y * 0.25;
+		ImGui::SetNextWindowSize(hold);
 
 		if (ImGui::Begin("Inspector", 0, flags))
 		{
@@ -245,69 +269,6 @@ namespace UI
 			else
 			{
 				ImGui::Text("No Entity Selected");
-			}
-		}
-		ImGui::End();
-	}
-
-	void Update_UIStressTest(entt::registry& registry, entt::entity entity)
-	{
-		ImGuiWindowFlags flags = {};
-		flags |= ImGuiWindowFlags_::ImGuiWindowFlags_NoMove;
-		flags |= ImGuiWindowFlags_::ImGuiWindowFlags_NoCollapse;
-		flags |= ImGuiWindowFlags_::ImGuiWindowFlags_NoResize;
-
-		UI::UIData& uiData = registry.get<UI::UIData>(entity);
-		ImGui::SetNextWindowPos(ImVec2(uiData.io->DisplaySize.x - (uiData.io->DisplaySize.x * 0.2), (uiData.io->DisplaySize.y * 0.25) + uiData.menuBarSize.y));
-		ImGui::SetNextWindowSize(ImVec2(uiData.io->DisplaySize.x * 0.2, uiData.io->DisplaySize.y * 0.75));
-
-		if (ImGui::Begin("Testing Suite", 0, flags))
-		{
-			if (ImGui::Button("Clear Extra Entities"))
-			{
-				auto added = registry.view<GAME::StressTestAddition>();
-
-				for (auto& ent : added)
-				{
-					registry.destroy(ent);
-				}
-			}
-
-			if (ImGui::Button("+10 Entites"))
-			{
-				BEHAVIORS::AddEntites(10);
-			}
-			if (ImGui::Button("+20 Entites"))
-			{
-				BEHAVIORS::AddEntites(20);
-			}
-			if (ImGui::Button("+30 Entites"))
-			{
-				BEHAVIORS::AddEntites(30);
-			}
-			if (ImGui::Button("+50 Entites"))
-			{
-				BEHAVIORS::AddEntites(50);
-			}
-			if (ImGui::Button("+100 Entites"))
-			{
-				BEHAVIORS::AddEntites(100);
-			}
-			if (ImGui::Button("+500 Entites"))
-			{
-				BEHAVIORS::AddEntites(500);
-			}
-			if (ImGui::Button("+1,000 Entites"))
-			{
-				BEHAVIORS::AddEntites(1000);
-			}
-			if (ImGui::Button("+10,000 Entites"))
-			{
-				BEHAVIORS::AddEntites(10000);
-			}
-			if (ImGui::Button("+25,000 Entites"))
-			{
-				BEHAVIORS::AddEntites(25000);
 			}
 		}
 		ImGui::End();
@@ -447,7 +408,6 @@ namespace UI
 		registry.on_update<UI::UI_ViewComponents>().connect<Update_UIViewComponentsMenu>();
 		registry.on_update<UI::UI_ViewConsole>().connect<Update_UIViewConsoleMenu>();
 		registry.on_update<UI::UI_Inspector>().connect<Update_UIInspector>();
-		registry.on_update<UI::UI_StressTest>().connect<Update_UIStressTest>();
 
 		// UI Data Component
 		registry.on_construct<UI::UIData>().connect<Construct_UIContext>();

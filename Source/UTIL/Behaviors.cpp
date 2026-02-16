@@ -170,17 +170,6 @@ namespace BEHAVIORS
 			time.totalTime += elapsed;
 			dbg.theta = std::cos(std::sin(time.totalTime));
 
-			while (AddEntites() > 0)
-			{
-				entt::entity sun = registry.group<GAME::Sun>().front();
-				entt::entity created = SOL::CreateMoon(registry, sun, RANDOM::GetRandomRange(50, 60));
-				// override spawned planets.
-				registry.get<GAME::Orbit>(created).angularSpeed = RANDOM::GetRandomRange(-0.1, 0.1);
-				registry.emplace<GAME::StressTestAddition>(created);
-
-				AddEntites(-1);
-			}
-
 			// Update Game
 			auto gameManagerGroup = registry.group<GAME::GameManager>();
 			for (auto& game : gameManagerGroup)
@@ -198,16 +187,6 @@ namespace BEHAVIORS
 				}
 				else
 				{
-					// static so i can reuse the mem addr
-					static int secondCounter = 0;
-					if ((time.totalTime > 2.0 && time.totalTime < 15.0f) && (int)time.totalTime != secondCounter)
-					{
-						secondCounter++;
-						LOG::LogDebug("Example Debug Log");
-						LOG::LogWarning("Example Warning Log");
-						LOG::LogError("Example Error Log");
-					}
-
 					registry.patch<APP::Window>(entity);
 				}
 			}

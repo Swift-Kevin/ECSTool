@@ -19,7 +19,6 @@ namespace GAME
 	COMPONENT(Obstacle) {};
 	COMPONENT(Collidable) {};
 	COMPONENT(GameManager) {};
-	COMPONENT(StressTestAddition) {};
 
 	///*** Components ***///
 	COMPONENT(Transform)

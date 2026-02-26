@@ -11,13 +11,17 @@ set(PRE_COMPILED
 
 
 # Create list of source files.
-# GLOB APIs
 file(GLOB APIS CONFIGURE_DEPENDS 
 	./ExternalAPI/entt-3.13.1/single_include/entt/entt.hpp
 	./ExternalAPI/inifile-cpp-master/include/inicpp.h
 	./ExternalAPI/TinyGLTF/*.*
 	./ExternalAPI/imgui/*.*
 )
+
+if (UNIX AND NOT APPLE)
+	list(REMOVE_ITEM APIS "./ExternalAPI/imgui/*win32.*")
+endif(UNIX AND NOT APPLE)
+
 # GLOB source files
 file(GLOB_RECURSE HEADERS CONFIGURE_DEPENDS ./Source/*.h)
 file(GLOB_RECURSE CPPS CONFIGURE_DEPENDS ./Source/*.cpp)
@@ -58,6 +62,22 @@ if (WIN32)
 	# shaderc_combined.lib in Vulkan requires this for debug & release (runtime shader compiling)
 	target_compile_options(${PROJECT_NAME} PRIVATE "/MD")
 endif(WIN32)
+
+if(UNIX AND NOT APPLE)
+	# libshaderc_combined.a is required for runtime shader compiling
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -lX11 -lshaderc_combined")
+    find_package(X11)
+	find_package(Vulkan REQUIRED)
+    link_libraries(${X11_LIBRARIES})
+    include_directories(${X11_INCLUDE_DIR})
+    include_directories(${Vulkan_INCLUDE_DIR}) 
+	link_libraries(${Vulkan_LIBRARIES})
+	# the path is (properly)hardcoded because "${Vulkan_LIBRARY}" currently does not 
+	# return a proper path on MacOS (it has the .dynlib appended)
+    link_libraries(/usr/lib/x86_64-linux-gnu/libshaderc_combined.a)
+    add_executable (${PROJECT_NAME} ${SOURCE_FILES})
+    source_group(TREE ${CMAKE_SOURCE_DIR} FILES ${SOURCE_FILES})
+endif(UNIX AND NOT APPLE)
 
 # EnTT requires C++17 support
 target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_17)

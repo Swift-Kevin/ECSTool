@@ -11,13 +11,10 @@
 
 namespace BEHAVIORS
 {
-	// Helper
-	int AddEntites(int numberToAdd = 0);
-
 	// Method declarations
-	void GraphicsBehavior(entt::registry& registry);
-	void UIBehavior(entt::registry& registry);
-	void GameplayBehavior(entt::registry& registry);
+	void InitializeGraphics(entt::registry& registry);
+	void InitializeUI(entt::registry& registry);
+	void InitializeGameplay(entt::registry& registry);
 	void MainLoopBehavior(entt::registry& registry);
 
 } // namespace BEHAVIORS

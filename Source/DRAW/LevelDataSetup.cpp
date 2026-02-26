@@ -60,7 +60,7 @@ namespace DRAW
 				registry.emplace<MeshCollection>(collidableEntity).collider = levelData.levelColliders[_blenderObjects[i].modelIndex];
 
 				GAME::Transform trans = {};
-				trans.local = levelData.levelTransforms[_blenderObjects[i].transformIndex];
+				trans.localMatrix = levelData.levelTransforms[_blenderObjects[i].transformIndex];
 				registry.emplace<GAME::Transform>(collidableEntity, trans);
 				registry.emplace<GAME::Obstacle>(collidableEntity);
 			}

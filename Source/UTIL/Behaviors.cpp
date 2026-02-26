@@ -2,18 +2,11 @@
 
 namespace BEHAVIORS
 {
-	int AddEntites(int numberToAdd)
-	{
-		static int entityAdder = 0;
-		entityAdder += numberToAdd;
-		return entityAdder;
-	}
-
 	/// <summary>
 	/// Loads all Graphics related data
 	/// </summary>
 	/// <param name="registry">holds all ECS info</param>
-	void GraphicsBehavior(entt::registry& registry)
+	void InitializeGraphics(entt::registry& registry)
 	{
 		std::shared_ptr<const GameConfig> config = registry.ctx().get<UTIL::Config>().gameConfig;
 
@@ -89,7 +82,7 @@ namespace BEHAVIORS
 	/// Handles creation of UI
 	/// </summary>
 	/// <param name="registry">holds all ECS info</param>
-	void UIBehavior(entt::registry& registry)
+	void InitializeUI(entt::registry& registry)
 	{
 		auto uiEntity = registry.create();
 		UI::UIData& uiComp = registry.emplace<UI::UIData>(uiEntity);
@@ -99,7 +92,7 @@ namespace BEHAVIORS
 	/// Run all gameplay updates
 	/// </summary>
 	/// <param name="registry">holds all ECS info</param>
-	void GameplayBehavior(entt::registry& registry)
+	void InitializeGameplay(entt::registry& registry)
 	{
 		std::shared_ptr<const GameConfig> config = registry.ctx().get<UTIL::Config>().gameConfig;
 
@@ -115,8 +108,12 @@ namespace BEHAVIORS
 			GW::MATH::GMatrix::RotateXLocalF(startingTransform, G_DEGREE_TO_RADIAN_F(15), startingTransform);
 
 			GAME::Transform trans = {};
-			trans.local = startingTransform;
+			trans.localTranslation = { 50, 15, -5, 1 };
+			trans.localRotation = { G_DEGREE_TO_RADIAN_F(15), G_DEGREE_TO_RADIAN_F(-60), G_DEGREE_TO_RADIAN_F(0), 0 };
+			trans.localScale = { 1, 1, 1, 1 };
+			 
 			registry.emplace<GAME::Transform>(playerEntity, trans);
+			registry.emplace<GAME::Inspectable>(playerEntity, "Player");
 		}
 
 		// Spawn the planets

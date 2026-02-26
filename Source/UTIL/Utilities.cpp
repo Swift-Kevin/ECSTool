@@ -64,7 +64,6 @@ namespace RANDOM
 		}
 
 		return GW::MATH::GVECTORF{ G_RADIAN_TO_DEGREE_F(roll), G_RADIAN_TO_DEGREE_F(pitch), G_RADIAN_TO_DEGREE_F(yaw) };
-		//return GW::MATH::GVECTORF{ roll, pitch, yaw };
 	}
 
 	GW::MATH::GVECTORF RandomPointInCircle(float radius, float heightModifier = 0)
@@ -81,6 +80,7 @@ namespace UTIL
 	void CreateModelEntity(entt::registry& registry, entt::entity entity, std::string _modelFromIni, GAME::Transform* transform)
 	{
 		std::shared_ptr<const GameConfig> config = registry.ctx().get<UTIL::Config>().gameConfig;
+		registry.emplace<GAME::Inspectable>(entity, _modelFromIni);
 
 		// Get models
 		auto& meshesOnEntity = registry.emplace<DRAW::MeshCollection>(entity).entites;
@@ -95,15 +95,15 @@ namespace UTIL
 		else
 		{
 			GAME::Transform trans = {};
-			trans.world = registry.get<DRAW::GPUInstance>(modelsMeshs[0]).transform;
+			trans.worldMatrix = registry.get<DRAW::GPUInstance>(modelsMeshs[0]).transform;
 			GW::MATH::GVECTORF pos = { 0, 0, 0, 1 };
 			pos.x = config.get()->at(_modelFromIni).at("posX").as<float>();
 			pos.y = config.get()->at(_modelFromIni).at("posY").as<float>();
 			pos.z = config.get()->at(_modelFromIni).at("posZ").as<float>();
 			float s = config.get()->at(_modelFromIni).at("scale").as<float>();
 			GW::MATH::GVECTORF scale = { s, s, s, 1 };
-			GW::MATH::GMatrix::ScaleLocalF(trans.world, scale, trans.world);
-			trans.world.row4 = pos;
+			GW::MATH::GMatrix::ScaleLocalF(trans.worldMatrix, scale, trans.worldMatrix);
+			trans.worldMatrix.row4 = pos;
 			registry.emplace<GAME::Transform>(entity, trans);
 		}
 
@@ -115,7 +115,7 @@ namespace UTIL
 
 			// Fix transform if overridden
 			DRAW::GPUInstance copyGPU = registry.get<DRAW::GPUInstance>(ent);
-			copyGPU.transform = transform ? transform->world : registry.get<DRAW::GPUInstance>(ent).transform;
+			copyGPU.transform = transform ? transform->worldMatrix : registry.get<DRAW::GPUInstance>(ent).transform;
 
 			registry.emplace<DRAW::GPUInstance>(copyEntity, copyGPU);
 			registry.emplace<DRAW::GeometryData>(copyEntity, registry.get<DRAW::GeometryData>(ent));
@@ -143,8 +143,8 @@ namespace UTIL
 
 		// Compute Child Local
 		GW::MATH::GMATRIXF parentInverse = GW::MATH::GIdentityMatrixF;
-		GW::MATH::GMatrix::InverseF(parent.world, parentInverse);
-		GW::MATH::GMatrix::MultiplyMatrixF(child.world, parentInverse, child.local);
+		GW::MATH::GMatrix::InverseF(parent.worldMatrix, parentInverse);
+		GW::MATH::GMatrix::MultiplyMatrixF(child.worldMatrix, parentInverse, child.localMatrix);
 
 		std::shared_ptr<const GameConfig> config = registry.ctx().get<UTIL::Config>().gameConfig;
 		float rot = config.get()->at(iniName).at("rotSpeed").as<float>();
@@ -160,9 +160,9 @@ namespace UTIL
 
 	void UpdateWorldPosition(GW::MATH::GMATRIXF parentWorld, GW::MATH::GMATRIXF& childWorld, float radius)
 	{
-		GW::MATH::GMATRIXF parentInverse, local = GW::MATH::GIdentityMatrixF;
+		GW::MATH::GMATRIXF parentInverse, localMatrix = GW::MATH::GIdentityMatrixF;
 		GW::MATH::GMatrix::InverseF(parentWorld, parentInverse);
-		GW::MATH::GMatrix::MultiplyMatrixF(childWorld, parentInverse, local);
+		GW::MATH::GMatrix::MultiplyMatrixF(childWorld, parentInverse, localMatrix);
 
 		// apply offset
 		GW::MATH::GVECTORF pos = RANDOM::RandomPointInCircle(radius);
@@ -180,7 +180,7 @@ namespace UTIL
 		{
 			if (relation.parent == parent)
 			{
-				GW::MATH::GMatrix::MultiplyMatrixF(transform.local, registry.get<GAME::Transform>(parent).world, transform.world);
+				GW::MATH::GMatrix::MultiplyMatrixF(transform.localMatrix, registry.get<GAME::Transform>(parent).worldMatrix, transform.worldMatrix);
 				UpdateChildren(registry, entity);
 			}
 		}

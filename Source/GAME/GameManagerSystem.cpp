@@ -19,7 +19,7 @@ namespace GAME
 			{
 				// copy over transform to gpu instance
 				// gpu instance is what is actually drawn
-				registry.get<DRAW::GPUInstance>(entity).transform = currTransform.world;
+				registry.get<DRAW::GPUInstance>(entity).transform = currTransform.worldMatrix;
 			}
 		}
 	}
@@ -44,45 +44,45 @@ namespace GAME
 			{
 			case UTIL::DebugHierarchy::Rotation:
 			{
-				GW::MATH::GMatrix::RotateYGlobalF(parent.world, orbit.currentAngle, parent.world);
+				GW::MATH::GMatrix::RotateYGlobalF(parent.worldMatrix, orbit.currentAngle, parent.worldMatrix);
 				break;
 			}
 			case UTIL::DebugHierarchy::Translation:
 			{
 				if (observeChange)
-					GW::MATH::GMatrix::TranslateGlobalF(parent.world, translate, parent.world);
+					GW::MATH::GMatrix::TranslateGlobalF(parent.worldMatrix, translate, parent.worldMatrix);
 				break;
 			}
 			case UTIL::DebugHierarchy::Scale:
 			{
 				if (observeChange)
-					GW::MATH::GMatrix::ScaleLocalF(parent.world, scale, parent.world);
+					GW::MATH::GMatrix::ScaleLocalF(parent.worldMatrix, scale, parent.worldMatrix);
 				break;
 			}
 			case UTIL::DebugHierarchy::Combined:
 			{
 				if (observeChange)
-					GW::MATH::GMatrix::TranslateGlobalF(parent.world, translate, parent.world);
+					GW::MATH::GMatrix::TranslateGlobalF(parent.worldMatrix, translate, parent.worldMatrix);
 
-				GW::MATH::GMatrix::RotateYGlobalF(parent.world, orbit.currentAngle, parent.world);
+				GW::MATH::GMatrix::RotateYGlobalF(parent.worldMatrix, orbit.currentAngle, parent.worldMatrix);
 
 				if (observeChange)
-					GW::MATH::GMatrix::ScaleLocalF(parent.world, scale, parent.world);
+					GW::MATH::GMatrix::ScaleLocalF(parent.worldMatrix, scale, parent.worldMatrix);
 
 				break;
 			}
 			case UTIL::DebugHierarchy::SolarSystem:
 			{
-				GW::MATH::GMatrix::RotateYGlobalF(parent.world, orbit.currentAngle, parent.world);
+				GW::MATH::GMatrix::RotateYGlobalF(parent.worldMatrix, orbit.currentAngle, parent.worldMatrix);
 				if (observeChange)
-					GW::MATH::GMatrix::TranslateGlobalF(parent.world, translate, parent.world);
+					GW::MATH::GMatrix::TranslateGlobalF(parent.worldMatrix, translate, parent.worldMatrix);
 				break;
 			}
 			default:
 				break;
 			}
 
-			GW::MATH::GMatrix::MultiplyMatrixF(child.local, parent.world, child.world);
+			GW::MATH::GMatrix::MultiplyMatrixF(child.localMatrix, parent.worldMatrix, child.worldMatrix);
 		}
 	}
 
@@ -108,7 +108,7 @@ namespace GAME
 		for (const entt::entity& entity : allEntities)
 		{
 			// add velocity to position
-			auto& pos = registry.get<Transform>(entity).local.row4;
+			auto& pos = registry.get<Transform>(entity).localTranslation;
 			auto velocity = registry.get<Velocity>(entity).velocity;
 
 			GW::MATH::GVector::ScaleF(velocity, deltaTime, velocity);

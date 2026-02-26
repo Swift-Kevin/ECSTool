@@ -12,7 +12,7 @@ namespace SOL
 
 		auto& child = registry.get<GAME::Transform>(moonEntity);
 		auto parent = registry.get<GAME::Transform>(parentE);
-		UTIL::UpdateWorldPosition(parent.world, child.world, radius);
+		UTIL::UpdateWorldPosition(parent.worldMatrix, child.worldMatrix, radius);
 		UTIL::CreateOrbiter(registry, moonEntity, parentE, "Moon");
 		
 		return moonEntity;

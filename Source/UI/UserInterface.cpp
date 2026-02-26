@@ -1,8 +1,7 @@
 #include "../CCL.h"
-#include "../UTIL/Utilities.h"
-#include "../UI/UserInterfaceComponents.h"
-#include "../UTIL/Behaviors.h"
+#include "UIUtilities.h"
 
+#ifdef _WIN32 
 static HWND    winHandle = nullptr;
 static WNDPROC winProc = nullptr;
 extern LRESULT ImGui_ImplWin32_WndProcHandler(HWND, UINT, WPARAM, LPARAM);
@@ -12,25 +11,15 @@ static LRESULT CALLBACK ImGui_WndProcHook(HWND hWnd, UINT msg, WPARAM wParam, LP
 		return 1;
 	return CallWindowProc(winProc, hWnd, msg, wParam, lParam);
 }
+#endif
 
 namespace UI
 {
-	void ConstructTransformInpsector(GW::MATH::GMATRIXF& matrix)
+	void ConstructTransformInpsector(GAME::Transform& _transform)
 	{
-		auto& rotVec = RANDOM::GetRotationFromMatrix(matrix);
-		float* pos[3] = { &matrix.row4.x, &matrix.row4.y, &matrix.row4.z, };
-		float* rot[3] = { &rotVec.x, &rotVec.y, &rotVec.z };
-		float* sca[3] = { &matrix.row1.x, &matrix.row2.y, &matrix.row3.z };
-
-		ImGui::TextUnformatted("Position");
-		ImGui::SameLine();
-		ImGui::DragFloat3("##Position", *pos, 0.1f);
-		ImGui::TextUnformatted("Rotation");
-		ImGui::SameLine();
-		ImGui::DragFloat3("##Rotation", *rot, 0.1f);
-		ImGui::TextUnformatted("Scale");
-		ImGui::SameLine();
-		ImGui::DragFloat3("##Scale", *sca, 0.1f);
+		UI::DrawVec3Control("Position", _transform.localTranslation);
+		UI::DrawVec3Control("Rotation", _transform.localRotation);
+		UI::DrawVec3Control("Scale", _transform.localScale);
 	}
 
 	void Update_UIMenuBar(entt::registry& registry, entt::entity entity)
@@ -79,7 +68,7 @@ namespace UI
 
 		// Camera Text
 		{
-			ImGui::SetNextWindowPos(ImVec2(uiData.io->DisplaySize.x * 0.2f, uiData.menuBarSize.y));
+			ImGui::SetNextWindowPos(ImVec2(0, uiData.menuBarSize.y));
 			ImGui::SetNextWindowSize(ImVec2(175, 10));
 
 			ImGuiWindowFlags flags = {};
@@ -106,11 +95,11 @@ namespace UI
 
 		UI::UIData& uiData = registry.get<UI::UIData>(entity);
 		ImVec2 hold = ImVec2(0, 0);
-		hold.x = uiData.io->DisplaySize.x - uiData.io->DisplaySize.x * 0.2f;
+		hold.x = uiData.io->DisplaySize.x - uiData.io->DisplaySize.x * 0.25f;
 		hold.y = uiData.menuBarSize.y + uiData.io->DisplaySize.y * 0.25;
 		ImGui::SetNextWindowPos(hold);
 
-		hold.x = uiData.io->DisplaySize.x * 0.2f;
+		hold.x = uiData.io->DisplaySize.x * 0.25f;
 		hold.y = uiData.io->DisplaySize.y * 0.5f - uiData.menuBarSize.y;
 		ImGui::SetNextWindowSize(hold);
 
@@ -119,9 +108,10 @@ namespace UI
 			ImVec2 availableSpace = ImGui::GetContentRegionAvail();
 			if (ImGui::BeginListBox("##", availableSpace))
 			{
-				for (auto entity : registry.view<GAME::Transform>())
+				auto& inspectables = registry.view<GAME::Inspectable>();
+				for (auto [entity, inspec] : inspectables.each())
 				{
-					std::string name = "Entity: " + std::to_string((ENTT_ID_TYPE)entity);
+					std::string name = inspec.name + "{ E:" + std::to_string((ENTT_ID_TYPE)entity) + " }";
 					if (ImGui::Selectable(name.c_str(), false))
 					{
 						uiData.inspectingEntity = entity;
@@ -143,11 +133,11 @@ namespace UI
 
 		UI::UIData& uiData = registry.get<UI::UIData>(entity);
 		ImVec2 hold = ImVec2(0, 0);
-		hold.x = uiData.io->DisplaySize.x - uiData.io->DisplaySize.x * 0.2f;
+		hold.x = uiData.io->DisplaySize.x - uiData.io->DisplaySize.x * 0.25f;
 		hold.y = uiData.menuBarSize.y + uiData.io->DisplaySize.y * 0.25;
 		ImGui::SetNextWindowPos(hold);
 
-		hold.x = uiData.io->DisplaySize.x * 0.2f;
+		hold.x = uiData.io->DisplaySize.x * 0.25f;
 		hold.y = uiData.io->DisplaySize.y * 0.5f - uiData.menuBarSize.y;
 		ImGui::SetNextWindowSize(hold);
 
@@ -177,11 +167,11 @@ namespace UI
 
 		UI::UIData& uiData = registry.get<UI::UIData>(entity);
 		ImVec2 hold = ImVec2(0, 0);
-		hold.x = uiData.io->DisplaySize.x - uiData.io->DisplaySize.x * 0.2;
+		hold.x = uiData.io->DisplaySize.x - uiData.io->DisplaySize.x * 0.25;
 		hold.y = uiData.io->DisplaySize.y * 0.75f;
 		ImGui::SetNextWindowPos(hold);
 
-		hold.x = uiData.io->DisplaySize.x * 0.2f;
+		hold.x = uiData.io->DisplaySize.x * 0.25f;
 		hold.y = uiData.io->DisplaySize.y * 0.25f;
 		ImGui::SetNextWindowSize(hold);
 
@@ -242,11 +232,11 @@ namespace UI
 
 		UI::UIData& uiData = registry.get<UI::UIData>(entity);
 		ImVec2 hold = ImVec2(0, 0);
-		hold.x = uiData.io->DisplaySize.x - (uiData.io->DisplaySize.x * 0.2);
+		hold.x = uiData.io->DisplaySize.x - (uiData.io->DisplaySize.x * 0.25);
 		hold.y = uiData.menuBarSize.y;
 		ImGui::SetNextWindowPos(hold);
 
-		hold.x = uiData.io->DisplaySize.x * 0.2;
+		hold.x = uiData.io->DisplaySize.x * 0.25;
 		hold.y = uiData.io->DisplaySize.y * 0.25;
 		ImGui::SetNextWindowSize(hold);
 
@@ -254,15 +244,11 @@ namespace UI
 		{
 			if (uiData.inspectingEntity != entt::null)
 			{
-				ImGui::PushItemWidth(200);
-				GAME::Transform transform = registry.get<GAME::Transform>(uiData.inspectingEntity);
-				if (ImGui::CollapsingHeader("World Transform", ImGuiTreeNodeFlags_DefaultOpen))
+				ImGui::PushItemWidth(ImGui::GetColumnWidth());
+				GAME::Transform* transform = registry.try_get<GAME::Transform>(uiData.inspectingEntity);
+				if (transform != nullptr && ImGui::CollapsingHeader("Transform", ImGuiTreeNodeFlags_DefaultOpen))
 				{
-					ConstructTransformInpsector(transform.world);
-				}
-				if (ImGui::CollapsingHeader("Local Transform", ImGuiTreeNodeFlags_DefaultOpen))
-				{
-					ConstructTransformInpsector(transform.local);
+					ConstructTransformInpsector(*transform);
 				}
 				ImGui::PopItemWidth();
 			}
@@ -327,6 +313,7 @@ namespace UI
 		uiData.io->ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
 		uiData.io->ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
 		uiData.io->DisplaySize = ImVec2(width, height);
+		uiData.io->ConfigDragClickToInputText = true;
 
 		//this initializes imgui for SDL
 		GW::SYSTEM::UNIVERSAL_WINDOW_HANDLE hand;

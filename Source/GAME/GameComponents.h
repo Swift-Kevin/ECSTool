@@ -23,8 +23,44 @@ namespace GAME
 	///*** Components ***///
 	COMPONENT(Transform)
 	{
-		GW::MATH::GMATRIXF local = GW::MATH::GIdentityMatrixF;
-		GW::MATH::GMATRIXF world = GW::MATH::GIdentityMatrixF;
+		// aka Position
+		GW::MATH::GVECTORF localTranslation = { 0, 0, 0, 1 };
+		// rotation in euler
+		GW::MATH::GVECTORF localRotation = { 0, 0, 0, 1 };
+		// scale relative to parent
+		GW::MATH::GVECTORF localScale = { 1, 1, 1, 1 };
+
+		GW::MATH::GMATRIXF GetLocalTransform()
+		{
+			GW::MATH::GMATRIXF translationMatrix = GW::MATH::GIdentityMatrixF, rotationMatrix = GW::MATH::GIdentityMatrixF, scaleMatrix = GW::MATH::GIdentityMatrixF, finalMatrix = GW::MATH::GIdentityMatrixF;
+
+			GW::MATH::GMatrix::TranslateLocalF(translationMatrix, localTranslation, translationMatrix);
+
+			float pitchRad = G_DEGREE_TO_RADIAN_F(localRotation.x), yawRad = G_DEGREE_TO_RADIAN_F(localRotation.y), rollRad = G_DEGREE_TO_RADIAN_F(localRotation.z);
+
+			GW::MATH::GMATRIXF rollMatrix = GW::MATH::GIdentityMatrixF, pitchMatrix = GW::MATH::GIdentityMatrixF, yawMatrix = GW::MATH::GIdentityMatrixF;
+			GW::MATH::GMatrix::RotateZLocalF(rollMatrix, rollRad, rollMatrix);
+			GW::MATH::GMatrix::RotateXLocalF(pitchMatrix, pitchRad, pitchMatrix);
+			GW::MATH::GMatrix::RotateYLocalF(yawMatrix, yawRad, yawMatrix);
+
+			GW::MATH::GMatrix::MultiplyMatrixF(pitchMatrix, yawMatrix, rotationMatrix);
+			GW::MATH::GMatrix::MultiplyMatrixF(rotationMatrix, rollMatrix, rotationMatrix);
+			GW::MATH::GMatrix::ScaleLocalF(scaleMatrix, localScale, scaleMatrix);
+			
+			GW::MATH::GMatrix::MultiplyMatrixF(rotationMatrix, translationMatrix, finalMatrix);
+			GW::MATH::GMatrix::MultiplyMatrixF(finalMatrix, scaleMatrix, finalMatrix);
+
+			localMatrix = finalMatrix;
+			return localMatrix;
+		}
+
+		GW::MATH::GMATRIXF localMatrix = GW::MATH::GIdentityMatrixF;
+		GW::MATH::GMATRIXF worldMatrix = GW::MATH::GIdentityMatrixF;
+	};
+
+	COMPONENT(Inspectable)
+	{
+		std::string name = "";
 	};
 
 	COMPONENT(ChildTransform)

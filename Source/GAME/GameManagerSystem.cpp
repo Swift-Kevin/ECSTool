@@ -31,7 +31,7 @@ namespace GAME
 
 		for (auto [entity, child, orbit, relation] : view.each())
 		{
-			auto* parent = registry.try_get<Transform>(child.parentID);
+			auto* parent = registry.try_get<Transform>(relation.parent);
 			orbit.currentAngle += orbit.angularSpeed * deltaTime.dtSec;
 
 			switch (debugInfo.debugMode)

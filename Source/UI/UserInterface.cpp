@@ -15,13 +15,6 @@ static LRESULT CALLBACK ImGui_WndProcHook(HWND hWnd, UINT msg, WPARAM wParam, LP
 
 namespace UI
 {
-	void ConstructTransformInpsector(GAME::Transform& _transform)
-	{
-		UI::DrawVec3Control("Position", _transform.localTranslation);
-		UI::DrawVec3Control("Rotation", _transform.localRotation);
-		UI::DrawVec3Control("Scale", _transform.localScale);
-	}
-
 	void Update_UIMenuBar(entt::registry& registry, entt::entity entity)
 	{
 		UI::UIData& uiData = registry.get<UI::UIData>(entity);
@@ -103,22 +96,40 @@ namespace UI
 		hold.y = uiData.io->DisplaySize.y * 0.5f - uiData.menuBarSize.y;
 		ImGui::SetNextWindowSize(hold);
 
-		if (ImGui::Begin("Entities", 0, flags))
+		if (ImGui::Begin("Entities", nullptr, flags))
 		{
 			ImVec2 availableSpace = ImGui::GetContentRegionAvail();
-			if (ImGui::BeginListBox("##", availableSpace))
+
+			if (ImGui::BeginChild("EntitiesHierarchy", availableSpace, true))
 			{
-				auto& inspectables = registry.view<GAME::Inspectable>();
-				for (auto [entity, inspec] : inspectables.each())
+				// Build hierarchy
+				std::unordered_map<entt::entity, std::vector<entt::entity>> hierarchy;
+				std::vector<entt::entity> roots;
+
+				auto view = registry.view<GAME::Transform, GAME::Inspectable>();
+
+				for (auto e : view)
 				{
-					std::string name = inspec.name + " { E:" + std::to_string((ENTT_ID_TYPE)entity) + " }";
-					if (ImGui::Selectable(name.c_str(), false))
+					auto& transform = view.get<GAME::Transform>(e);
+
+					if (transform.parentID == entt::null || !registry.valid(transform.parentID))
 					{
-						uiData.inspectingEntity = entity;
+						roots.push_back(e);
+					}
+					else
+					{
+						hierarchy[transform.parentID].push_back(e);
 					}
 				}
-				ImGui::EndListBox();
+
+				// Draw roots recursively
+				for (auto root : roots)
+				{
+					DrawEntityNode(registry, root, hierarchy, uiData);
+				}
 			}
+
+			ImGui::EndChild();
 		}
 		ImGui::End();
 	}
@@ -244,6 +255,8 @@ namespace UI
 		{
 			if (uiData.inspectingEntity != entt::null)
 			{
+				ImGui::Text(registry.get<GAME::Inspectable>(uiData.inspectingEntity).name.c_str());
+
 				ImGui::PushItemWidth(ImGui::GetColumnWidth());
 				GAME::Transform* transform = registry.try_get<GAME::Transform>(uiData.inspectingEntity);
 				if (transform != nullptr && ImGui::CollapsingHeader("Transform", ImGuiTreeNodeFlags_DefaultOpen))

@@ -29,39 +29,37 @@ namespace GAME
 		auto& deltaTime = registry.ctx().get<UTIL::DeltaTime>();
 		auto& debugInfo = registry.ctx().get<UTIL::DebugInfo>();
 
+		GW::MATH::GMATRIXF tempParentWorld = GW::MATH::GIdentityMatrixF;
+
 		for (auto& [entity, child] : view.each())
 		{
 			auto* parentTransformComp = registry.try_get<GAME::Transform>(child.parentID);
 			auto* orbitComp = registry.try_get<GAME::Orbit>(entity);
 
-			switch (debugInfo.debugMode)
+			if (debugInfo.debugMode == UTIL::DebugHierarchy::SolarSystem)
 			{
-			case UTIL::DebugHierarchy::SolarSystem:
-			{
-				float rate = deltaTime.dtSec;
-				if (orbitComp) { rate *= orbitComp->angularSpeed; }
-				else { rate = 0.0f; }
-
-				if (parentTransformComp)
+				if (orbitComp)
 				{
-					parentTransformComp->localRotation.y += rate;
-				}
-				else
-				{
-					child.localRotation.y += rate;
-				}
-				break;
-			}
+					orbitComp->currentAngle += G_DEGREE_TO_RADIAN_F(orbitComp->angularSpeed * deltaTime.dtSec);
 
-			default:
-				break;
+					if (parentTransformComp)
+					{
+						tempParentWorld = parentTransformComp->worldMatrix;
+						GW::MATH::GMatrix::RotateYGlobalF(parentTransformComp->worldMatrix, orbitComp->currentAngle, parentTransformComp->worldMatrix);
+					}
+					else
+					{
+						child.localRotation.y += orbitComp->angularSpeed * deltaTime.dtSec;
+					}
+				}
 			}
 
 			// Rebuild parent matrices from TRS
 			if (parentTransformComp)
 			{
 				parentTransformComp->GetLocalMatrix();
-				GW::MATH::GMatrix::MultiplyMatrixF(child.GetLocalMatrix(), parentTransformComp->worldMatrix, child.worldMatrix);
+				child.GetWorldMatrix(parentTransformComp->worldMatrix);
+				parentTransformComp->worldMatrix = tempParentWorld;
 			}
 			else
 			{

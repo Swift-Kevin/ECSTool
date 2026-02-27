@@ -24,6 +24,7 @@ namespace SOL
 
 		UTIL::UpdateWorldPosition(parent, child, radius);
 		UTIL::CreateOrbiter(registry, moonEntity, parentE, "Moon");
+		registry.get<GAME::Orbit>(moonEntity).radius = radius;
 		
 		return moonEntity;
 	}

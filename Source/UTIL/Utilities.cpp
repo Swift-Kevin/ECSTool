@@ -155,7 +155,7 @@ namespace UTIL
 
 		GAME::Orbit moonOrbit = {};
 		moonOrbit.parent = orbiting;
-		moonOrbit.angularSpeed = G_DEGREE_TO_RADIAN_F(RANDOM::GetRandomRange(rot * 0.15, rot * 1.5));
+		moonOrbit.angularSpeed = G_DEGREE_TO_RADIAN_F(rot);
 
 		registry.emplace<GAME::Orbit>(orbiter, moonOrbit);
 	}

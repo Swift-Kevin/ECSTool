@@ -30,6 +30,12 @@ namespace GAME
 		// scale relative to parent
 		GW::MATH::GVECTORF localScale = { 1, 1, 1, 1 };
 
+		GW::MATH::GMATRIXF localMatrix = GW::MATH::GIdentityMatrixF;
+		GW::MATH::GMATRIXF worldMatrix = GW::MATH::GIdentityMatrixF;
+
+		entt::entity parentID = entt::null;
+
+
 		GW::MATH::GMATRIXF GetLocalMatrix()
 		{
 			GW::MATH::GMATRIXF translationMatrix = GW::MATH::GIdentityMatrixF, rotationMatrix = GW::MATH::GIdentityMatrixF, scaleMatrix = GW::MATH::GIdentityMatrixF, finalMatrix = GW::MATH::GIdentityMatrixF;
@@ -46,18 +52,23 @@ namespace GAME
 			GW::MATH::GMatrix::MultiplyMatrixF(pitchMatrix, yawMatrix, rotationMatrix);
 			GW::MATH::GMatrix::MultiplyMatrixF(rotationMatrix, rollMatrix, rotationMatrix);
 			GW::MATH::GMatrix::ScaleLocalF(scaleMatrix, localScale, scaleMatrix);
-			
+
 			GW::MATH::GMatrix::MultiplyMatrixF(rotationMatrix, scaleMatrix, finalMatrix);
 			finalMatrix.row4 = translationMatrix.row4;
 
 			localMatrix = finalMatrix;
 			return localMatrix;
 		}
-
-		GW::MATH::GMATRIXF localMatrix = GW::MATH::GIdentityMatrixF;
-		GW::MATH::GMATRIXF worldMatrix = GW::MATH::GIdentityMatrixF;
-
-		entt::entity parentID = entt::null;
+		
+		/// <summary>
+		/// Recalculates the Local Matrix, then Computes the World Space Matrix
+		/// </summary>
+		/// <param name="_parent">'s world matrix</param>
+		GW::MATH::GMATRIXF GetWorldMatrix(const GW::MATH::GMATRIXF& _parent)
+		{
+			GW::MATH::GMatrix::MultiplyMatrixF(GetLocalMatrix(), _parent, worldMatrix);
+			return worldMatrix;
+		}
 	};
 
 	COMPONENT(Inspectable)
@@ -69,6 +80,8 @@ namespace GAME
 	{
 		entt::entity parent = entt::null;
 		float angularSpeed = 1.0f;
+		float currentAngle = 0.0f;
+		float radius = 0.0f;
 	};
 
 	COMPONENT(Velocity)

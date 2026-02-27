@@ -40,11 +40,11 @@ namespace UI
 
 				if (ImGui::MenuItem("Solar System"))
 				{
-					info.debugMode = info.debugMode == UTIL::DebugHierarchy::SolarSystem ? 
-						UTIL::DebugHierarchy::BaseRender : 
+					info.debugMode = info.debugMode == UTIL::DebugHierarchy::SolarSystem ?
+						UTIL::DebugHierarchy::BaseRender :
 						UTIL::DebugHierarchy::SolarSystem;
 				}
-			
+
 				ImGui::EndMenu();
 			}
 		}
@@ -99,7 +99,7 @@ namespace UI
 		if (ImGui::Begin("Entities", nullptr, flags))
 		{
 			ImVec2 availableSpace = ImGui::GetContentRegionAvail();
-
+			ImGui::Text("Entities");
 			if (ImGui::BeginChild("EntitiesHierarchy", availableSpace, true))
 			{
 				// Build hierarchy
@@ -390,6 +390,7 @@ namespace UI
 
 	void Update_UIContext(entt::registry& registry, entt::entity entity)
 	{
+
 		ImGui_ImplWin32_NewFrame();
 		ImGui_ImplVulkan_NewFrame();
 

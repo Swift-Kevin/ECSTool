@@ -73,22 +73,79 @@ namespace UI
 			flags |= ImGuiTreeNodeFlags_::ImGuiTreeNodeFlags_NoTreePushOnOpen;
 		}
 
-		if (uiData.inspectingEntity == entity) 
-		{ 
+		if (uiData.inspectingEntity == entity)
+		{
 			flags |= ImGuiTreeNodeFlags_::ImGuiTreeNodeFlags_Selected;
 		}
-		
-		if (registry.get<GAME::Transform>(entity).parentID == entt::null) 
-		{ 
+
+		if (registry.get<GAME::Transform>(entity).parentID == entt::null)
+		{
 			flags |= ImGuiTreeNodeFlags_::ImGuiTreeNodeFlags_DefaultOpen;
 		}
 
 		std::string label = inspec.name + " { E:" + std::to_string((ENTT_ID_TYPE)entity) + " }";
 		bool opened = ImGui::TreeNodeEx((void*)(uint64_t)(uint32_t)entity, flags, "%s", label.c_str());
 
-		if (ImGui::IsItemClicked()) 
-		{ 
-			uiData.inspectingEntity = entity; 
+		if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID))
+		{
+			ImGui::SetDragDropPayload("ENTITY", &entity, sizeof(entt::entity));
+			ImGui::Text("%s", label.c_str());
+			ImGui::EndDragDropSource();
+		}
+
+		if (ImGui::IsItemHovered() && ImGui::IsMouseClicked(ImGuiMouseButton_Right))
+		{
+			ImGui::OpenPopup(("EntityPopup" + std::to_string((ENTT_ID_TYPE)entity)).c_str());  // Unique Popup ID per entity
+		}
+
+		// Ensure unique popup ID per entity
+		if (ImGui::BeginPopup(("EntityPopup" + std::to_string((ENTT_ID_TYPE)entity)).c_str()))  // Unique Popup ID
+		{
+			if (ImGui::MenuItem("Unparent"))
+			{
+				auto& transform = registry.get<GAME::Transform>(entity);
+				transform.parentID = entt::null;
+			}
+
+			ImGui::EndPopup();
+		}
+
+
+		if (ImGui::IsItemClicked())
+		{
+			uiData.inspectingEntity = entity;
+		}
+
+		if (ImGui::BeginDragDropTarget())
+		{
+			const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ENTITY");
+			if (payload)
+			{
+				entt::entity draggedEntity = *(entt::entity*)payload->Data;
+				entt::entity currentEntity = entity;
+				bool subChild = false;
+
+				while (!subChild && currentEntity != entt::null)
+				{
+					if (registry.get<GAME::Transform>(currentEntity).parentID == draggedEntity)
+					{
+						subChild = true;
+						currentEntity = entt::null;
+					}
+					else
+					{
+						currentEntity = registry.get<GAME::Transform>(currentEntity).parentID;
+					}
+				}
+
+				if (draggedEntity != entity && !subChild)
+				{
+					auto& transform = registry.get<GAME::Transform>(draggedEntity);
+					transform.parentID = entity == entt::null ? entt::null : entity;
+				}
+			}
+
+			ImGui::EndDragDropTarget();
 		}
 
 		if (opened && hasChildren)

@@ -41,17 +41,17 @@ namespace UI
 				LOG::Log("Opening Components Menu");
 				uiData.state = UI::MenuState::Components;
 			}
-			if (ImGui::BeginMenu("Hierarchy"))
+			if (ImGui::BeginMenu("Simulations"))
 			{
 				auto& info = registry.ctx().get<UTIL::DebugInfo>();
 
-				if (ImGui::MenuItem("Base Render")) { info.debugMode = UTIL::DebugHierarchy::BaseRender; }
-				if (ImGui::MenuItem("Rotation")) { info.debugMode = UTIL::DebugHierarchy::Rotation; }
-				if (ImGui::MenuItem("Translation")) { info.debugMode = UTIL::DebugHierarchy::Translation; }
-				if (ImGui::MenuItem("Scales")) { info.debugMode = UTIL::DebugHierarchy::Scale; }
-				if (ImGui::MenuItem("Combined")) { info.debugMode = UTIL::DebugHierarchy::Combined; }
-				if (ImGui::MenuItem("Multi Combined")) { info.debugMode = UTIL::DebugHierarchy::SolarSystem; }
-
+				if (ImGui::MenuItem("Solar System"))
+				{
+					info.debugMode = info.debugMode == UTIL::DebugHierarchy::SolarSystem ? 
+						UTIL::DebugHierarchy::BaseRender : 
+						UTIL::DebugHierarchy::SolarSystem;
+				}
+			
 				ImGui::EndMenu();
 			}
 		}
@@ -111,7 +111,7 @@ namespace UI
 				auto& inspectables = registry.view<GAME::Inspectable>();
 				for (auto [entity, inspec] : inspectables.each())
 				{
-					std::string name = inspec.name + "{ E:" + std::to_string((ENTT_ID_TYPE)entity) + " }";
+					std::string name = inspec.name + " { E:" + std::to_string((ENTT_ID_TYPE)entity) + " }";
 					if (ImGui::Selectable(name.c_str(), false))
 					{
 						uiData.inspectingEntity = entity;

@@ -69,8 +69,8 @@ namespace GAME
 	void UpdateSceneFreeCamRotation(entt::registry& registry, entt::entity entity, GW::MATH::GVECTORF inputStates)
 	{
 		GW::MATH::GVECTORF& playerRot = registry.get<Transform>(entity).localRotation;
-		playerRot.x = std::clamp(playerRot.x + inputStates.z, -89.f, 89.f);
-		playerRot.y += inputStates.w;
+		playerRot.x = std::clamp(playerRot.x + G_RADIAN_TO_DEGREE_F(inputStates.z), -89.f, 89.f);
+		playerRot.y += G_RADIAN_TO_DEGREE_F(inputStates.w);
 	}
 
 	void UpdateSceneFreeCam(entt::registry& registry, entt::entity entity)

@@ -77,48 +77,61 @@ namespace RANDOM
 
 namespace UTIL
 {
-	void CreateModelEntity(entt::registry& registry, entt::entity entity, std::string _modelFromIni, GAME::Transform* transform)
+	void UpdateWorldMatrix(GAME::Transform& t, const GW::MATH::GMATRIXF* parentWorld)
 	{
-		std::shared_ptr<const GameConfig> config = registry.ctx().get<UTIL::Config>().gameConfig;
-		registry.emplace<GAME::Inspectable>(entity, _modelFromIni);
-
-		// Get models
-		auto& meshesOnEntity = registry.emplace<DRAW::MeshCollection>(entity).entites;
-		std::string modelName = config.get()->at(_modelFromIni).at("model").as<std::string>();
-		auto& modelsMeshs = registry.ctx().get<DRAW::ModelManager>().models[modelName].entites;
-
-		// Use overriden transform if passed
-		if (transform)
+		if (parentWorld)
 		{
-			registry.emplace<GAME::Transform>(entity, *transform);
+			GW::MATH::GMatrix::MultiplyMatrixF(t.localMatrix, *parentWorld, t.worldMatrix);
 		}
 		else
 		{
-			GAME::Transform trans = {};
-			trans.worldMatrix = registry.get<DRAW::GPUInstance>(modelsMeshs[0]).transform;
-			GW::MATH::GVECTORF pos = { 0, 0, 0, 1 };
-			pos.x = config.get()->at(_modelFromIni).at("posX").as<float>();
-			pos.y = config.get()->at(_modelFromIni).at("posY").as<float>();
-			pos.z = config.get()->at(_modelFromIni).at("posZ").as<float>();
-			float s = config.get()->at(_modelFromIni).at("scale").as<float>();
-			GW::MATH::GVECTORF scale = { s, s, s, 1 };
-			GW::MATH::GMatrix::ScaleLocalF(trans.worldMatrix, scale, trans.worldMatrix);
-			trans.worldMatrix.row4 = pos;
-			registry.emplace<GAME::Transform>(entity, trans);
+			t.worldMatrix = t.localMatrix;
+		}
+	}
+
+	void CreateModelEntity(entt::registry& registry, entt::entity entity, std::string iniName, GAME::Transform* _transform)
+	{
+		auto config = registry.ctx().get<UTIL::Config>().gameConfig;
+		registry.emplace<GAME::Inspectable>(entity, iniName);
+
+		auto& meshesOnEntity = registry.emplace<DRAW::MeshCollection>(entity).entites;
+		std::string modelName = config->at(iniName).at("model").as<std::string>();
+		auto& modelMeshes = registry.ctx().get<DRAW::ModelManager>().models[modelName].entites;
+
+		GAME::Transform t = {};
+
+		if (_transform)
+		{
+			t = *_transform;
+		}
+		else
+		{
+			float px = config->at(iniName).at("posX").as<float>();
+			float py = config->at(iniName).at("posY").as<float>();
+			float pz = config->at(iniName).at("posZ").as<float>();
+			float s = config->at(iniName).at("scale").as<float>();
+
+ 			t.localTranslation = { px, py, pz, 1.0f };
+			t.localScale = { s,  s,  s,  0.0f };
+			t.localRotation = { 0,  0,  0,  0.0f };
+			t.GetLocalTransform();
+
+			UpdateWorldMatrix(t);
 		}
 
-		for (entt::entity ent : modelsMeshs)
+		registry.emplace<GAME::Transform>(entity, t);
+
+		for (auto mesh : modelMeshes)
 		{
-			// Create entity per mesh
-			auto copyEntity = registry.create();
-			meshesOnEntity.push_back(copyEntity);
+			auto copy = registry.create();
+			meshesOnEntity.push_back(copy);
 
-			// Fix transform if overridden
-			DRAW::GPUInstance copyGPU = registry.get<DRAW::GPUInstance>(ent);
-			copyGPU.transform = transform ? transform->worldMatrix : registry.get<DRAW::GPUInstance>(ent).transform;
+			DRAW::GPUInstance gpu = registry.get<DRAW::GPUInstance>(mesh);
 
-			registry.emplace<DRAW::GPUInstance>(copyEntity, copyGPU);
-			registry.emplace<DRAW::GeometryData>(copyEntity, registry.get<DRAW::GeometryData>(ent));
+			gpu.transform = t.worldMatrix;
+
+			registry.emplace<DRAW::GPUInstance>(copy, gpu);
+			registry.emplace<DRAW::GeometryData>(copy, registry.get<DRAW::GeometryData>(mesh));
 		}
 	}
 
@@ -130,6 +143,7 @@ namespace UTIL
 		GW::MATH::GMatrix::InverseF(initialCamera, initialCamera);
 		registry.emplace<DRAW::Camera>(entity, DRAW::Camera{ initialCamera });
 	}
+
 	void PrintVector(GW::MATH::GVECTORF toPrint)
 	{
 		std::cout << "Vector: {" << toPrint.x << ", " << toPrint.y << ", " << toPrint.z << ", " << toPrint.w << "}\n";
@@ -140,11 +154,6 @@ namespace UTIL
 		auto& child = registry.get<GAME::Transform>(orbiter);
 		auto parent = registry.get<GAME::Transform>(orbiting);
 		registry.emplace<GAME::ChildTransform>(orbiter, orbiting);
-
-		// Compute Child Local
-		GW::MATH::GMATRIXF parentInverse = GW::MATH::GIdentityMatrixF;
-		GW::MATH::GMatrix::InverseF(parent.worldMatrix, parentInverse);
-		GW::MATH::GMatrix::MultiplyMatrixF(child.worldMatrix, parentInverse, child.localMatrix);
 
 		std::shared_ptr<const GameConfig> config = registry.ctx().get<UTIL::Config>().gameConfig;
 		float rot = config.get()->at(iniName).at("rotSpeed").as<float>();
@@ -158,19 +167,19 @@ namespace UTIL
 		registry.emplace<GAME::Orbit>(orbiter, moonOrbit);
 	}
 
-	void UpdateWorldPosition(GW::MATH::GMATRIXF parentWorld, GW::MATH::GMATRIXF& childWorld, float radius)
+	void UpdateWorldPosition(GAME::Transform parentWorld, GAME::Transform& childWorld, float radius)
 	{
 		GW::MATH::GMATRIXF parentInverse, localMatrix = GW::MATH::GIdentityMatrixF;
-		GW::MATH::GMatrix::InverseF(parentWorld, parentInverse);
-		GW::MATH::GMatrix::MultiplyMatrixF(childWorld, parentInverse, localMatrix);
+		GW::MATH::GMatrix::InverseF(parentWorld.worldMatrix, parentInverse);
+		GW::MATH::GMatrix::MultiplyMatrixF(childWorld.worldMatrix, parentInverse, localMatrix);
 
 		// apply offset
 		GW::MATH::GVECTORF pos = RANDOM::RandomPointInCircle(radius);
-		parentWorld.row4.x += pos.x;
-		parentWorld.row4.y += pos.y;
-		parentWorld.row4.z += pos.z;
+		parentWorld.localTranslation.x += pos.x;
+		parentWorld.localTranslation.y += pos.y;
+		parentWorld.localTranslation.z += pos.z;
 
-		childWorld.row4 = parentWorld.row4;
+		childWorld.localTranslation = parentWorld.localTranslation;
 	}
 
 	void UpdateChildren(entt::registry& registry, entt::entity parent)
@@ -193,6 +202,37 @@ namespace UTIL
 		{
 			UpdateChildren(registry, entity);
 		}
+	}
+
+	GW::MATH::GVECTORF EulerFromQuaternion(const GW::MATH::GQUATERNIONF& _quat)
+	{
+		GW::MATH::GVECTORF res;
+		// pseudo from https://automaticaddison.com/how-to-convert-a-quaternion-into-euler-angles-in-python/
+
+		// Convert a quaternion into euler angles(roll, pitch, yaw)
+		// roll is rotation around x in radians(counterclockwise)
+		// pitch is rotation around y in radians(counterclockwise)
+		// yaw is rotation around z in radians(counterclockwise)
+		float t0 = +2.0 * (_quat.w * _quat.x + _quat.y * _quat.z);
+		float t1 = +1.0 - 2.0 * (_quat.x * _quat.x + _quat.y * _quat.y);
+		float roll_x = std::atan2(t0, t1);
+
+		float t2 = +2.0 * (_quat.w * _quat.y - _quat.z * _quat.x);
+
+		t2 = (t2 > +1.0) ? 1.0f : t2;
+		t2 = (t2 < -1.0) ? -1.0 : t2;
+		float pitch_y = std::asin(t2);
+
+		float t3 = +2.0 * (_quat.w * _quat.z + _quat.x * _quat.y);
+		float t4 = +1.0 - 2.0 * (_quat.y * _quat.y + _quat.z * _quat.z);
+		float yaw_z = std::atan2(t3, t4);
+
+		res.x = roll_x;
+		res.y = pitch_y;
+		res.z = yaw_z;
+		res.w = 0;
+
+		return res;
 	}
 
 } // namespace UTIL

@@ -56,6 +56,8 @@ namespace GAME
 
 		GW::MATH::GMATRIXF localMatrix = GW::MATH::GIdentityMatrixF;
 		GW::MATH::GMATRIXF worldMatrix = GW::MATH::GIdentityMatrixF;
+
+		entt::entity parentID = entt::null;
 	};
 
 	COMPONENT(Inspectable)

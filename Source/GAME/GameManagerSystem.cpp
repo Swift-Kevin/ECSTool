@@ -17,84 +17,47 @@ namespace GAME
 
 			for (auto& entity : entities)
 			{
-				// copy over transform to gpu instance
-				// gpu instance is what is actually drawn
 				registry.get<DRAW::GPUInstance>(entity).transform = currTransform.worldMatrix;
 			}
 		}
 	}
 
-	void UpdateWorldTransforms(entt::registry& registry)
+	void UpdateOrbitTransforms(entt::registry& registry)
 	{
-		auto transforms = registry.view<Transform, Orbit, ChildTransform>();
-		auto deltaTime = registry.ctx().get<UTIL::DeltaTime>();
-		bool observeChange = false;
+		auto view = registry.view<Transform, Orbit, ChildTransform>();
 
-		for (auto [entity, transform, orbit, parentEntity] : transforms.each())
+		auto& deltaTime = registry.ctx().get<UTIL::DeltaTime>();
+		auto& debugInfo = registry.ctx().get<UTIL::DebugInfo>();
+
+		for (auto [entity, child, orbit, relation] : view.each())
 		{
-			auto& child = registry.get<Transform>(entity);
-			auto parent = registry.get<Transform>(parentEntity.parent);
+			auto* parent = registry.try_get<Transform>(child.parentID);
+			orbit.currentAngle += orbit.angularSpeed * deltaTime.dtSec;
 
-			UTIL::DebugInfo dInfo = registry.ctx().get<UTIL::DebugInfo>();
-			GW::MATH::GVECTORF translate = { 0, dInfo.theta, 0, 1 };
-			GW::MATH::GVECTORF scale = { dInfo.theta, dInfo.theta, dInfo.theta, 1 };
-			observeChange = registry.any_of<GAME::Orbit>(entity);
-
-			switch (dInfo.debugMode)
+			switch (debugInfo.debugMode)
 			{
-			case UTIL::DebugHierarchy::Rotation:
-			{
-				GW::MATH::GMatrix::RotateYGlobalF(parent.worldMatrix, orbit.currentAngle, parent.worldMatrix);
-				break;
-			}
-			case UTIL::DebugHierarchy::Translation:
-			{
-				if (observeChange)
-					GW::MATH::GMatrix::TranslateGlobalF(parent.worldMatrix, translate, parent.worldMatrix);
-				break;
-			}
-			case UTIL::DebugHierarchy::Scale:
-			{
-				if (observeChange)
-					GW::MATH::GMatrix::ScaleLocalF(parent.worldMatrix, scale, parent.worldMatrix);
-				break;
-			}
-			case UTIL::DebugHierarchy::Combined:
-			{
-				if (observeChange)
-					GW::MATH::GMatrix::TranslateGlobalF(parent.worldMatrix, translate, parent.worldMatrix);
-
-				GW::MATH::GMatrix::RotateYGlobalF(parent.worldMatrix, orbit.currentAngle, parent.worldMatrix);
-
-				if (observeChange)
-					GW::MATH::GMatrix::ScaleLocalF(parent.worldMatrix, scale, parent.worldMatrix);
-
-				break;
-			}
 			case UTIL::DebugHierarchy::SolarSystem:
 			{
-				GW::MATH::GMatrix::RotateYGlobalF(parent.worldMatrix, orbit.currentAngle, parent.worldMatrix);
-				if (observeChange)
-					GW::MATH::GMatrix::TranslateGlobalF(parent.worldMatrix, translate, parent.worldMatrix);
+				if (parent)
+				{
+					parent->localRotation.y += orbit.angularSpeed * deltaTime.dtSec;
+					parent->localTranslation.y = debugInfo.theta * deltaTime.dtSec;
+					parent->localTranslation.w = 1.0f;
+				}
 				break;
 			}
+
 			default:
 				break;
 			}
 
-			GW::MATH::GMatrix::MultiplyMatrixF(child.localMatrix, parent.worldMatrix, child.worldMatrix);
-		}
-	}
-
-	void UpdateOrbits(entt::registry& registry)
-	{
-		auto orbiters = registry.view<Transform, Orbit>();
-		auto& deltaTime = registry.ctx().get<UTIL::DeltaTime>();
-
-		for (auto [entity, transform, orbit] : orbiters.each())
-		{
-			orbit.currentAngle += orbit.angularSpeed * deltaTime.dtSec;
-			orbit.currentOffset = std::cos(std::sin(deltaTime.totalTime));
+			// Rebuild parent matrices from TRS
+			if (parent)
+			{
+				parent->GetLocalTransform();
+			}
+			
+			UTIL::UpdateWorldMatrix(child, parent ? &parent->worldMatrix : nullptr);
 		}
 	}
 
@@ -126,8 +89,10 @@ namespace GAME
 
 		// Update Velocities and Transforms
 		UpdateEntityVelocities(registry);
-		UpdateOrbits(registry);
-		UpdateWorldTransforms(registry);
+		UpdateOrbitTransforms(registry);
+
+		UTIL::ComputeHierarchy(registry);
+
 		UpdateMeshTransforms(registry);
 	}
 

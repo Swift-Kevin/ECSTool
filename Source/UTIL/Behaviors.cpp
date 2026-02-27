@@ -101,17 +101,11 @@ namespace BEHAVIORS
 			auto playerEntity = registry.create();
 			registry.emplace<GAME::Player>(playerEntity);
 
-			GW::MATH::GVECTORF pos = { 50, 15, -5, 1 };
-			GW::MATH::GMATRIXF startingTransform = GW::MATH::GIdentityMatrixF;
-			GW::MATH::GMatrix::TranslateGlobalF(startingTransform, pos, startingTransform);
-			GW::MATH::GMatrix::RotateYLocalF(startingTransform, G_DEGREE_TO_RADIAN_F(-60), startingTransform);
-			GW::MATH::GMatrix::RotateXLocalF(startingTransform, G_DEGREE_TO_RADIAN_F(15), startingTransform);
-
 			GAME::Transform trans = {};
 			trans.localTranslation = { 50, 15, -5, 1 };
-			trans.localRotation = { G_DEGREE_TO_RADIAN_F(15), G_DEGREE_TO_RADIAN_F(-60), G_DEGREE_TO_RADIAN_F(0), 0 };
+			trans.localRotation = { 15, -60, 0, 0 };
 			trans.localScale = { 1, 1, 1, 1 };
-			 
+
 			registry.emplace<GAME::Transform>(playerEntity, trans);
 			registry.emplace<GAME::Inspectable>(playerEntity, "Player");
 		}

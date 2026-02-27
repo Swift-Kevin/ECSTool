@@ -89,7 +89,7 @@ namespace GAME
 		}
 
 		auto& camera = registry.get<DRAW::Camera>(registry.view<DRAW::Camera>().front());
-		camera.camMatrix = registry.get<Transform>(entity).GetLocalTransform();
+		camera.camMatrix = registry.get<Transform>(entity).GetLocalMatrix();
 	}
 
 	CONNECT_COMPONENT_LOGIC() {

@@ -114,9 +114,8 @@ namespace UTIL
  			t.localTranslation = { px, py, pz, 1.0f };
 			t.localScale = { s,  s,  s,  0.0f };
 			t.localRotation = { 0,  0,  0,  0.0f };
-			t.GetLocalTransform();
-
-			UpdateWorldMatrix(t);
+			t.GetLocalMatrix();
+			t.worldMatrix = t.localMatrix;
 		}
 
 		registry.emplace<GAME::Transform>(entity, t);
@@ -151,18 +150,12 @@ namespace UTIL
 
 	void CreateOrbiter(entt::registry& registry, entt::entity orbiter, entt::entity orbiting, std::string iniName)
 	{
-		auto& child = registry.get<GAME::Transform>(orbiter);
-		auto parent = registry.get<GAME::Transform>(orbiting);
-		registry.emplace<GAME::ChildTransform>(orbiter, orbiting);
-
 		std::shared_ptr<const GameConfig> config = registry.ctx().get<UTIL::Config>().gameConfig;
 		float rot = config.get()->at(iniName).at("rotSpeed").as<float>();
 
 		GAME::Orbit moonOrbit = {};
 		moonOrbit.parent = orbiting;
-		moonOrbit.angularSpeed = G_DEGREE_TO_RADIAN_F(rot);
-		moonOrbit.axis = GAME::ORBIT_AXIS::Y;
-		moonOrbit.currentAngle = 0.0f;
+		moonOrbit.angularSpeed = G_DEGREE_TO_RADIAN_F(RANDOM::GetRandomRange(rot * 0.15, rot * 1.5));
 
 		registry.emplace<GAME::Orbit>(orbiter, moonOrbit);
 	}
@@ -175,33 +168,12 @@ namespace UTIL
 
 		// apply offset
 		GW::MATH::GVECTORF pos = RANDOM::RandomPointInCircle(radius);
-		parentWorld.localTranslation.x += pos.x;
-		parentWorld.localTranslation.y += pos.y;
-		parentWorld.localTranslation.z += pos.z;
+		//parentWorld.localTranslation.x += pos.x;
+		//parentWorld.localTranslation.y += pos.y;
+		//parentWorld.localTranslation.z += pos.z;
 
-		childWorld.localTranslation = parentWorld.localTranslation;
-	}
-
-	void UpdateChildren(entt::registry& registry, entt::entity parent)
-	{
-		auto view = registry.view<GAME::ChildTransform, GAME::Transform>();
-		for (auto [entity, relation, transform] : view.each())
-		{
-			if (relation.parent == parent)
-			{
-				GW::MATH::GMatrix::MultiplyMatrixF(transform.localMatrix, registry.get<GAME::Transform>(parent).worldMatrix, transform.worldMatrix);
-				UpdateChildren(registry, entity);
-			}
-		}
-	}
-
-	void ComputeHierarchy(entt::registry& registry)
-	{
-		auto roots = registry.view<GAME::Transform>();
-		for (auto entity : roots)
-		{
-			UpdateChildren(registry, entity);
-		}
+		childWorld.localTranslation = pos;
+		childWorld.GetLocalMatrix();
 	}
 
 	GW::MATH::GVECTORF EulerFromQuaternion(const GW::MATH::GQUATERNIONF& _quat)

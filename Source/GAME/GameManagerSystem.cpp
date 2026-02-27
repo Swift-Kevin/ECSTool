@@ -22,27 +22,33 @@ namespace GAME
 		}
 	}
 
-	void UpdateOrbitTransforms(entt::registry& registry)
+	void UpdateTransforms(entt::registry& registry)
 	{
-		auto view = registry.view<Transform, Orbit, ChildTransform>();
+		auto view = registry.view<Transform>();
 
 		auto& deltaTime = registry.ctx().get<UTIL::DeltaTime>();
 		auto& debugInfo = registry.ctx().get<UTIL::DebugInfo>();
 
-		for (auto [entity, child, orbit, relation] : view.each())
+		for (auto& [entity, child] : view.each())
 		{
-			auto* parent = registry.try_get<Transform>(relation.parent);
-			orbit.currentAngle += orbit.angularSpeed * deltaTime.dtSec;
+			auto* parentTransformComp = registry.try_get<GAME::Transform>(child.parentID);
+			auto* orbitComp = registry.try_get<GAME::Orbit>(entity);
 
 			switch (debugInfo.debugMode)
 			{
 			case UTIL::DebugHierarchy::SolarSystem:
 			{
-				if (parent)
+				float rate = deltaTime.dtSec;
+				if (orbitComp) { rate *= orbitComp->angularSpeed; }
+				else { rate = 0.0f; }
+
+				if (parentTransformComp)
 				{
-					parent->localRotation.y += orbit.angularSpeed * deltaTime.dtSec;
-					parent->localTranslation.y = debugInfo.theta * deltaTime.dtSec;
-					parent->localTranslation.w = 1.0f;
+					parentTransformComp->localRotation.y += rate;
+				}
+				else
+				{
+					child.localRotation.y += rate;
 				}
 				break;
 			}
@@ -52,12 +58,16 @@ namespace GAME
 			}
 
 			// Rebuild parent matrices from TRS
-			if (parent)
+			if (parentTransformComp)
 			{
-				parent->GetLocalTransform();
+				parentTransformComp->GetLocalMatrix();
+				GW::MATH::GMatrix::MultiplyMatrixF(child.GetLocalMatrix(), parentTransformComp->worldMatrix, child.worldMatrix);
 			}
-			
-			UTIL::UpdateWorldMatrix(child, parent ? &parent->worldMatrix : nullptr);
+			else
+			{
+				child.worldMatrix = child.GetLocalMatrix();
+			}
+
 		}
 	}
 
@@ -89,10 +99,7 @@ namespace GAME
 
 		// Update Velocities and Transforms
 		UpdateEntityVelocities(registry);
-		UpdateOrbitTransforms(registry);
-
-		UTIL::ComputeHierarchy(registry);
-
+		UpdateTransforms(registry);
 		UpdateMeshTransforms(registry);
 	}
 

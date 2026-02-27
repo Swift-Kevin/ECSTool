@@ -37,7 +37,6 @@ namespace UTIL
 	};
 
 	/// Method declarations
-	void UpdateWorldMatrix(GAME::Transform& t, const GW::MATH::GMATRIXF* parentWorld = nullptr);
 	void CreateModelEntity(entt::registry& registry, entt::entity entity, std::string entityName, GAME::Transform* _transform = nullptr);
 	void SetupCamera(entt::registry& registry, entt::entity entity);
 
@@ -45,10 +44,6 @@ namespace UTIL
 	void CreateOrbiter(entt::registry& registry, entt::entity orbiter, entt::entity orbiting, std::string iniName = "");
 	void UpdateWorldPosition(GAME::Transform parentWorld, GAME::Transform& childWorld, float radius);
 	
-	// Hierarchy
-	void UpdateChildren(entt::registry& registry, entt::entity parent);
-	void ComputeHierarchy(entt::registry& registry);
-
 	// Math Helpers
 	GW::MATH::GVECTORF EulerFromQuaternion(const GW::MATH::GQUATERNIONF& _quat);
 

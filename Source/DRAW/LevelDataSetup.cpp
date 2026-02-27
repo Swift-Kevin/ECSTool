@@ -63,7 +63,7 @@ namespace DRAW
 				trans.localRotation = { 0, 0, 0, 1 };
 				trans.localScale = { 0, 0, 0, 1 };
 				trans.localTranslation = levelData.levelTransforms[_blenderObjects[i].transformIndex].row4;
-				trans.GetLocalTransform();
+				trans.GetLocalMatrix();
 
 				registry.emplace<GAME::Transform>(collidableEntity, trans);
 				registry.emplace<GAME::Obstacle>(collidableEntity);

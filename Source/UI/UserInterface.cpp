@@ -134,7 +134,7 @@ namespace UI
 		ImGui::End();
 	}
 
-	void Update_UIViewComponentsMenu(entt::registry& registry, entt::entity entity)
+	void Update_UIViewRegisteredComponentsMenu(entt::registry& registry, entt::entity entity)
 	{
 		ImGuiWindowFlags flags = {};
 		flags |= ImGuiWindowFlags_::ImGuiWindowFlags_NoMove;
@@ -154,8 +154,8 @@ namespace UI
 
 		if (ImGui::Begin("Components", 0, flags))
 		{
-			ImVec2 availableSpace = ImGui::GetContentRegionAvail();
-			if (ImGui::BeginListBox("##", availableSpace))
+			ImGui::Text("Registered Components");
+			if (ImGui::BeginListBox("##", ImGui::GetContentRegionAvail()))
 			{
 				auto& map = RegisteredComponents();
 				for (auto [compName, compIdx] : map)
@@ -262,6 +262,14 @@ namespace UI
 				if (transform != nullptr && ImGui::CollapsingHeader("Transform", ImGuiTreeNodeFlags_DefaultOpen))
 				{
 					ConstructTransformInpsector(*transform);
+				}
+				ImGui::PopItemWidth();
+
+				ImGui::PushItemWidth(ImGui::GetColumnWidth());
+				GAME::Orbit* orbit = registry.try_get<GAME::Orbit>(uiData.inspectingEntity);
+				if (orbit != nullptr && ImGui::CollapsingHeader("Orbit", ImGuiTreeNodeFlags_DefaultOpen))
+				{
+					UI::DrawFloatControl("Angular Speed", orbit->angularSpeed);
 				}
 				ImGui::PopItemWidth();
 			}
@@ -405,7 +413,7 @@ namespace UI
 		// All UI Menus
 		registry.on_update<UI::UI_MenuBar>().connect<Update_UIMenuBar>();
 		registry.on_update<UI::UI_ViewEntites>().connect<Update_UIViewEntitiesMenu>();
-		registry.on_update<UI::UI_ViewComponents>().connect<Update_UIViewComponentsMenu>();
+		registry.on_update<UI::UI_ViewComponents>().connect<Update_UIViewRegisteredComponentsMenu>();
 		registry.on_update<UI::UI_ViewConsole>().connect<Update_UIViewConsoleMenu>();
 		registry.on_update<UI::UI_Inspector>().connect<Update_UIInspector>();
 

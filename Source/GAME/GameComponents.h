@@ -30,7 +30,7 @@ namespace GAME
 		// scale relative to parent
 		GW::MATH::GVECTORF localScale = { 1, 1, 1, 1 };
 
-		GW::MATH::GMATRIXF GetLocalTransform()
+		GW::MATH::GMATRIXF GetLocalMatrix()
 		{
 			GW::MATH::GMATRIXF translationMatrix = GW::MATH::GIdentityMatrixF, rotationMatrix = GW::MATH::GIdentityMatrixF, scaleMatrix = GW::MATH::GIdentityMatrixF, finalMatrix = GW::MATH::GIdentityMatrixF;
 
@@ -47,8 +47,8 @@ namespace GAME
 			GW::MATH::GMatrix::MultiplyMatrixF(rotationMatrix, rollMatrix, rotationMatrix);
 			GW::MATH::GMatrix::ScaleLocalF(scaleMatrix, localScale, scaleMatrix);
 			
-			GW::MATH::GMatrix::MultiplyMatrixF(rotationMatrix, translationMatrix, finalMatrix);
-			GW::MATH::GMatrix::MultiplyMatrixF(finalMatrix, scaleMatrix, finalMatrix);
+			GW::MATH::GMatrix::MultiplyMatrixF(rotationMatrix, scaleMatrix, finalMatrix);
+			finalMatrix.row4 = translationMatrix.row4;
 
 			localMatrix = finalMatrix;
 			return localMatrix;
@@ -65,18 +65,10 @@ namespace GAME
 		std::string name = "";
 	};
 
-	COMPONENT(ChildTransform)
-	{
-		entt::entity parent = entt::null;
-	};
-
 	COMPONENT(Orbit)
 	{
 		entt::entity parent = entt::null;
-		ORBIT_AXIS axis = ORBIT_AXIS::Y;
 		float angularSpeed = 1.0f;
-		float currentAngle = 0.0f;
-		float currentOffset = 0.0f;
 	};
 
 	COMPONENT(Velocity)

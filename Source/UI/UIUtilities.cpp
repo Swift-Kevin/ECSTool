@@ -53,6 +53,30 @@ namespace UI
 		ImGui::PopID();
 	}
 
+	void DrawReadOnlyIntValue(const std::string& _label, int _val, float _dragWidth, ImVec4 labelColor)
+	{
+		ImGui::BeginGroup();
+
+		float textWidth = ImGui::CalcTextSize(_label.c_str()).x;
+		float buttonWidth = textWidth + 10.0f;
+		
+		ImGui::PushStyleColor(ImGuiCol_Button, labelColor);
+		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, labelColor);
+		ImGui::PushStyleColor(ImGuiCol_ButtonActive, labelColor);
+		ImGui::Button(_label.c_str(), ImVec2(buttonWidth, 0));
+		ImGui::PopStyleColor(3);
+
+		ImGui::SameLine(0.0f, 0.0f);
+
+		ImGui::PushItemWidth(_dragWidth);
+		ImGui::BeginDisabled();
+		ImGui::InputInt(("##" + _label).c_str(), &_val, 0, 0);
+		ImGui::EndDisabled();
+		ImGui::PopItemWidth();
+
+		ImGui::EndGroup();
+	}
+
 	void ConstructTransformInpsector(GAME::Transform& _transform)
 	{
 		UI::DrawVec3Control("Position", _transform.localTranslation);
@@ -95,11 +119,10 @@ namespace UI
 
 		if (ImGui::IsItemHovered() && ImGui::IsMouseClicked(ImGuiMouseButton_Right))
 		{
-			ImGui::OpenPopup(("EntityPopup" + std::to_string((ENTT_ID_TYPE)entity)).c_str());  // Unique Popup ID per entity
+			ImGui::OpenPopup(("EntityPopup" + std::to_string((ENTT_ID_TYPE)entity)).c_str());
 		}
 
-		// Ensure unique popup ID per entity
-		if (ImGui::BeginPopup(("EntityPopup" + std::to_string((ENTT_ID_TYPE)entity)).c_str()))  // Unique Popup ID
+		if (ImGui::BeginPopup(("EntityPopup" + std::to_string((ENTT_ID_TYPE)entity)).c_str()))
 		{
 			if (ImGui::MenuItem("Unparent"))
 			{

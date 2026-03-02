@@ -89,11 +89,11 @@ namespace UI
 		UI::UIData& uiData = registry.get<UI::UIData>(entity);
 		ImVec2 hold = ImVec2(0, 0);
 		hold.x = uiData.io->DisplaySize.x - uiData.io->DisplaySize.x * 0.25f;
-		hold.y = uiData.menuBarSize.y + uiData.io->DisplaySize.y * 0.25;
+		hold.y = uiData.menuBarSize.y + uiData.io->DisplaySize.y * 0.3;
 		ImGui::SetNextWindowPos(hold);
 
 		hold.x = uiData.io->DisplaySize.x * 0.25f;
-		hold.y = uiData.io->DisplaySize.y * 0.5f - uiData.menuBarSize.y;
+		hold.y = uiData.io->DisplaySize.y * 0.45f - uiData.menuBarSize.y;
 		ImGui::SetNextWindowSize(hold);
 
 		if (ImGui::Begin("Entities", nullptr, flags))
@@ -145,11 +145,11 @@ namespace UI
 		UI::UIData& uiData = registry.get<UI::UIData>(entity);
 		ImVec2 hold = ImVec2(0, 0);
 		hold.x = uiData.io->DisplaySize.x - uiData.io->DisplaySize.x * 0.25f;
-		hold.y = uiData.menuBarSize.y + uiData.io->DisplaySize.y * 0.25;
+		hold.y = uiData.menuBarSize.y + uiData.io->DisplaySize.y * 0.3;
 		ImGui::SetNextWindowPos(hold);
 
 		hold.x = uiData.io->DisplaySize.x * 0.25f;
-		hold.y = uiData.io->DisplaySize.y * 0.5f - uiData.menuBarSize.y;
+		hold.y = uiData.io->DisplaySize.y * 0.45f - uiData.menuBarSize.y;
 		ImGui::SetNextWindowSize(hold);
 
 		if (ImGui::Begin("Components", 0, flags))
@@ -248,7 +248,7 @@ namespace UI
 		ImGui::SetNextWindowPos(hold);
 
 		hold.x = uiData.io->DisplaySize.x * 0.25;
-		hold.y = uiData.io->DisplaySize.y * 0.25;
+		hold.y = uiData.io->DisplaySize.y * 0.3;
 		ImGui::SetNextWindowSize(hold);
 
 		if (ImGui::Begin("Inspector", 0, flags))
@@ -270,6 +270,9 @@ namespace UI
 				if (orbit != nullptr && ImGui::CollapsingHeader("Orbit", ImGuiTreeNodeFlags_DefaultOpen))
 				{
 					UI::DrawFloatControl("Angular Speed", orbit->angularSpeed);
+					UI::DrawFloatControl("Current Angle", orbit->currentAngle);
+					UI::DrawFloatControl("Radius", orbit->radius);
+					UI::DrawReadOnlyIntValue("Parent ID", (uint32_t)orbit->parent);
 				}
 				ImGui::PopItemWidth();
 			}
